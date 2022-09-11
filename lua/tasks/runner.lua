@@ -188,7 +188,7 @@ function runner.get_current_job_name()
     return nil
   end
 
-  return last_job.cmd
+  return last_job.command
 end
 
 ---@return boolean: `true` if a job was canceled or `false` if there is no active job.
