@@ -123,6 +123,7 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
         request = 'launch',
         program = command.cmd,
         args = args,
+        cwd = cwd,
       }))
       if config.dap_open_command then
         vim.api.nvim_command('cclose')
