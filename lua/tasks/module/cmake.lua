@@ -264,7 +264,7 @@ cmake.tasks = {
   build = build,
   build_all = build_all,
   run = { build, run },
-  debug = debug,
+  debug = { build, debug },
   clean = clean,
   open_build_dir = open_build_dir,
 }
