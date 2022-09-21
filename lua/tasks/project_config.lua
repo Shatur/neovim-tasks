@@ -9,7 +9,7 @@ ProjectConfig.__index = ProjectConfig
 --- Reads project configuration JSON into a table.
 ---@return ProjectConfig
 function ProjectConfig.new()
-  local project_config = {}
+  local project_config
   local params_file = Path:new(config.params_file)
   if params_file:is_file() then
     project_config = vim.json.decode(params_file:read())
