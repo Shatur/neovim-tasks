@@ -121,7 +121,7 @@ end
 ---@param previous_job table
 ---@return table?
 local function debug_test(module_config, previous_job)
-  local package = get_executable_package(previous_job:result(), vim.tbl_get(module_config, 'args', 'debug_test'))
+  local package = get_executable_package(previous_job:result(), utils.split_args(module_config.global_cargo_args))
   if not package then
     return
   end
@@ -149,7 +149,7 @@ end
 ---@param previous_job table
 ---@return table?
 local function debug(module_config, previous_job)
-  local package = get_executable_package(previous_job:result(), vim.tbl_get(module_config, 'args', 'debug'))
+  local package = get_executable_package(previous_job:result(), utils.split_args(module_config.global_cargo_args))
   if not package then
     return
   end
