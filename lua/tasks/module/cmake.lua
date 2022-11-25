@@ -255,7 +255,7 @@ end
 cmake.params = {
   target = get_target_names,
   build_type = { 'Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel' },
-  'cmake',
+  'cmd',
   'dap_name',
 }
 cmake.condition = function() return Path:new('CMakeLists.txt'):exists() end
