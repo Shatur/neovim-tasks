@@ -103,6 +103,24 @@ function tasks.set_module_param(module_type, param_name)
   end)
 end
 
+--- Get a module-specific parameter value.
+---@param module_type string: Name of a module or `auto` string to pick a first module that match a condition.
+---@param param_name string
+function tasks.get_module_param(module_type, param_name)
+  local module, module_name = utils.get_module(module_type)
+  if not module then
+    return
+  end
+
+  local project_config = ProjectConfig.new()
+  local current_value = vim.tbl_get(project_config, module_name, param_name)
+  if not current_value then
+    return
+  end
+
+  return current_value
+end
+
 --- Set a parameter for a module task. Settings will be stored on disk.
 ---@param module_type string: Name of a module or `auto` string to pick a first module that match a condition.
 ---@param task_name string

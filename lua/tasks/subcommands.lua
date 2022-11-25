@@ -16,6 +16,7 @@ function subcommands.complete(arg, cmd_line)
     table.remove(words, #words)
   end
 
+  local module_dependent_words = { 'start', 'set_task_param', 'set_module_param', 'get_module_param' }
   if #words == 1 then
     for subcommand in pairs(tasks) do
       if vim.startswith(subcommand, arg) and subcommand ~= 'setup' then
@@ -23,7 +24,7 @@ function subcommands.complete(arg, cmd_line)
       end
     end
   elseif #words == 2 then
-    if words[2] == 'start' or words[2] == 'set_task_param' or words[2] == 'set_module_param' then
+    if vim.tbl_contains(module_dependent_words, words[2]) then
       local module_names = utils.get_module_names()
       table.insert(module_names, 'auto') -- Special value for automatic module detection
       for _, module_name in ipairs(module_names) do
@@ -33,10 +34,10 @@ function subcommands.complete(arg, cmd_line)
       end
     end
   elseif #words == 3 then
-    if words[2] == 'start' or words[2] == 'set_task_param' or words[2] == 'set_module_param' then
+    if vim.tbl_contains(module_dependent_words, words[2]) then
       local ok, module = pcall(require, 'tasks.module.' .. words[3])
       if ok then
-        for key, value in pairs(words[2] == 'set_module_param' and module.params or module.tasks) do
+        for key, value in pairs((words[2] == 'get_module_param' or words[2] == 'set_module_param') and module.params or module.tasks) do
           local name = type(key) == 'number' and value or key -- Handle arrays
           if vim.startswith(name, arg) then
             table.insert(matches, name)
