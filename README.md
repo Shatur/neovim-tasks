@@ -1,6 +1,6 @@
 # Neovim Tasks
 
-A Neovim 0.7+ plugin that provides a statefull task system focused on integration with build systems.
+A Neovim 0.7+ plugin that provides a stateful task system focused on integration with build systems.
 
 Tasks in this plugin are provided by modules that implement functionality for a specific build system. Modules can have custom parameters which user can set via `:Task set_module_param` (like current target or build type). Tasks consists of one or more commands and have `args` and `env` parameters to set arguments and environment variable respectively. All this settings are serializable and will be stored in configuration file in your project directory.
 
@@ -99,7 +99,7 @@ To create a module just put a lua file under `lua/tasks/modules` in your configu
   params = {
     -- A table of parameter names. Possible values:
     'parameter_name1', -- A string parameter, on setting user will be prompted with vim.ui.input.
-    parameter_name2 = { 'one', 'two' }, -- A table with possible balues, on setting user will be promted with vim.ui.select to pick one of these values.
+    parameter_name2 = { 'one', 'two' }, -- A table with possible values, on setting user will be prompted with vim.ui.select to pick one of these values.
     parameter_name3 = func, -- A function that generates a string or a table.
   }
   condition = function() return Path:new('file'):exists() end -- A function that returns `true` if this module could be applied to this directory. Used when `auto` is used as module name.
