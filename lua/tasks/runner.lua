@@ -165,7 +165,7 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
   end
 
   if #commands ~= 1 then
-    job:after_success(function() runner.chain_commands(task_name, vim.list_slice(commands, 2), module_config, addition_args, job) end)
+    job:after_success(vim.schedule_wrap(function() runner.chain_commands(task_name, vim.list_slice(commands, 2), module_config, addition_args, job) end))
   end
   last_job = job
 end
