@@ -40,7 +40,7 @@ function tasks.start(module_type, task_name, ...)
   if not vim.tbl_islist(commands) then
     commands = { commands }
   end
-  runner.chain_commands(task_name, commands, module_config, { ... })
+  runner.chain_commands(module_type, task_name, commands, module_config, { ... })
 end
 
 --- Set a module-specific parameter. Settings will be stored on disk.

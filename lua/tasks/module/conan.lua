@@ -1,14 +1,6 @@
 local path = require("plenary.path")
 local os = require('ffi').os:lower()
 
-local function notify_function(msg) 
-	return function ()
-		vim.notify(msg, "INFO", {
-			title = "Conan"
-		})
-	end
-end
-
 local function conan_install(module_config, _)
 	local build_folder = path:new(vim.loop.cwd(), "build", os .. "-" .. module_config.build_type)
 
@@ -22,7 +14,6 @@ local function conan_install(module_config, _)
 	return {
 		cmd = module_config.cmd,
 		args = args,
-		after_success = notify_function("Conan installed successfully"),
 	}
 end
 
