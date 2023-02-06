@@ -134,6 +134,7 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
     return
   end
 
+  local only_on_error = config.quickfix.only_on_error
   local quickfix_output = not command.ignore_stdout or not command.ignore_stderr
   local job = Job:new({
     command = command.cmd,
@@ -143,7 +144,9 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
     enable_recording = #commands ~= 1,
     on_start = quickfix_output and vim.schedule_wrap(function()
       vim.fn.setqflist({}, ' ', { title = command.cmd .. ' ' .. table.concat(args, ' ') })
-      vim.api.nvim_command(string.format('%s copen %d', config.quickfix.pos, config.quickfix.height))
+      if not only_on_error then
+        vim.api.nvim_command(string.format('%s copen %d', config.quickfix.pos, config.quickfix.height))
+      end
       vim.api.nvim_command('wincmd p')
     end) or nil,
     on_exit = vim.schedule_wrap(function(_, code, signal)
@@ -152,6 +155,8 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
       end
       if code == 0 and signal == 0 and command.after_success then
         command.after_success()
+      elseif only_on_error then
+        vim.api.nvim_command(string.format('%s copen %d', config.quickfix.pos, config.quickfix.height))
       end
     end),
   })
