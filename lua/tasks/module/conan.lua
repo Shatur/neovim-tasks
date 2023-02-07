@@ -14,13 +14,14 @@ local function conan_install(module_config, _)
 	return {
 		cmd = module_config.cmd,
 		args = args,
+		only_on_error = module_config.only_on_error
 	}
 end
 
 local conan = {
 	params = {
 		'cmd',
-		build_type = {"debug", "release"}
+		build_type = {"debug", "release"},
 	},
 	condition = function ()
 		return path:new('conanfile.txt'):exists()

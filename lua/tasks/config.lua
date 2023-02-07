@@ -15,6 +15,13 @@ local config = {
       cargo = {
         dap_name = 'lldb',
       },
+      conan = {
+        cmd = "conan",
+        build_type = "debug"
+      },
+      terraform = {
+        cmd = "terraform",
+      }
     },
     notifications = {
       on_exit = true,
@@ -25,7 +32,7 @@ local config = {
     quickfix = {
       pos = 'botright',
       height = 12,
-      only_on_error = false,
+      only_on_error = false
     },
     dap_open_command = function() return require('dap').repl.open() end,
   },

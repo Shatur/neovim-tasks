@@ -135,7 +135,7 @@ function runner.chain_commands(module_type, task_name, commands, module_config, 
   end
 
   local notifications = config.notifications
-  local only_on_error = config.quickfix.only_on_error
+  local only_on_error = command.only_on_error or (command.only_on_error == nil and config.quickfix.only_on_error)
   local quickfix_output = not command.ignore_stdout or not command.ignore_stderr
   local job = Job:new({
     command = command.cmd,
@@ -162,7 +162,7 @@ function runner.chain_commands(module_type, task_name, commands, module_config, 
         append_to_quickfix({ 'Exited with code ' .. (signal == 0 and code or 128 + signal) })
       end
 
-      if notifications.on_exit then
+      if notifications.on_exit and #commands == 1 then
         local msg = "Task %s completed with success"
         local level = vim.log.levels.INFO
 
