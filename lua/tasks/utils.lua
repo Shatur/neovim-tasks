@@ -18,6 +18,7 @@ function utils.split_args(args)
   end
 
   -- Split on spaces unless in quotes.
+  args = vim.trim(args)
   local splitted_args = {}
   local match_beg
   while true do
