@@ -97,8 +97,9 @@ local function get_cargo_subcommands()
     if index ~= 1 and not line:find('alias:') then
       local subcommand_end = line:find(' ', start_offset)
       local subcommand = line:sub(start_offset, subcommand_end and subcommand_end - 1 or nil)
-      cargo_subcommands[subcommand] =
-        function(module_config, _) return { cmd = 'cargo', args = vim.list_extend({ subcommand }, utils.split_args(module_config.global_cargo_args)), errorformat = errorformat } end
+      cargo_subcommands[subcommand] = function(module_config, _)
+        return { cmd = 'cargo', args = vim.list_extend({ subcommand }, utils.split_args(module_config.global_cargo_args)), errorformat = errorformat }
+      end
     end
   end
 
