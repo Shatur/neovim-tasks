@@ -143,14 +143,15 @@ end
 local function configure(module_config, _)
     local build_dir = parse_dir(module_config.build_dir,
                                 module_config.build_type)
+    vim.notify("build_dir: " .. build_dir.filename, vim.log.levels.INFO)
     build_dir:mkdir({parents = true})
     if not make_query_files(build_dir) then return nil end
 
     return {
         cmd = module_config.cmd,
         args = {
-            '-B', build_dir.filename, '-D', 'CMAKE_TOOLCHAIN_FILE=',
-            'conan_toolchain.cmake', '-D',
+            '-B', build_dir.filename, '-D',
+            'CMAKE_TOOLCHAIN_FILE=' .. 'conan_toolchain.cmake', '-D',
             'CMAKE_BUILD_TYPE=' .. module_config.build_type
         },
         after_success = copy_compile_commands
