@@ -8,7 +8,8 @@ local function conan_install(module_config, _)
     if not build_folder:exists() then build_folder:mkdir({parents = true}) end
 
     local args = {
-        "install", "--build=missing", "--output-folder", build_folder.filename
+        "install", "-s build_type=" .. module_config.build_type,
+        "--build=missing", "--output-folder", build_folder.filename
     }
 
     table.insert(args, "./")
