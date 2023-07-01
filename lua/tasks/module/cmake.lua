@@ -151,7 +151,8 @@ local function configure(module_config, _)
         cmd = module_config.cmd,
         args = {
             '-B', build_dir.filename, '-D',
-            'CMAKE_TOOLCHAIN_FILE=' .. 'conan_toolchain.cmake', '-D',
+            'CMAKE_TOOLCHAIN_FILE=' .. build_dir.filename ..
+                'conan_toolchain.cmake', '-D',
             'CMAKE_BUILD_TYPE=' .. module_config.build_type
         },
         after_success = copy_compile_commands
