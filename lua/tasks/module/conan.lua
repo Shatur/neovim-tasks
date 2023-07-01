@@ -3,7 +3,7 @@ local os = require('ffi').os:lower()
 
 local function conan_install(module_config, _)
     local build_folder = path:new(vim.loop.cwd(), "build",
-                                  os .. "-" .. module_config.build_type)
+                                  os .. "-" .. module_config.build_type:lower())
 
     if not build_folder:exists() then build_folder:mkdir({parents = true}) end
 
