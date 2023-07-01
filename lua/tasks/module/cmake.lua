@@ -143,7 +143,6 @@ end
 local function configure(module_config, _)
     local build_dir = parse_dir(module_config.build_dir,
                                 module_config.build_type)
-    vim.notify("build_dir: " .. build_dir.filename, vim.log.levels.INFO)
     build_dir:mkdir({parents = true})
     if not make_query_files(build_dir) then return nil end
 
