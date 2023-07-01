@@ -154,11 +154,6 @@ local function configure(module_config, _)
         'CMAKE_BUILD_TYPE=' .. module_config.build_type
     }
 
-    vim.notify("CMake configure args: " .. vim.inspect(args),
-               vim.log.levels.INFO)
-    utils.notify("CMake configure args: " .. vim.inspect(args),
-                 vim.log.levels.INFO)
-
     return {
         cmd = module_config.cmd,
         args = args,
