@@ -165,9 +165,10 @@ local function source(module_config, _)
     local build_dir = parse_dir(module_config.build_dir,
                                 module_config.build_type)
 
-    local args = {build_dir.filename .. "/conanbuild.sh"}
+    local args = {}
+    io.popen("source " .. build_dir.filename .. "/conanbuild.sh")
 
-    return {cmd = "source", args = args}
+    return {cmd = "", args = args}
 end
 
 --- Task
