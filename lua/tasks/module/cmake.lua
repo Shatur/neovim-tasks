@@ -168,7 +168,7 @@ local function source(module_config, _)
     local args = {}
     io.popen("source " .. build_dir.filename .. "/conanbuild.sh")
 
-    return {cmd = "", args = args}
+    return {cmd = "echo", args = args}
 end
 
 --- Task
