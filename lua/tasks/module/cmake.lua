@@ -161,31 +161,6 @@ end
 --- Task
 ---@param module_config table
 ---@return table
-local function source(module_config, _)
-    local build_dir = parse_dir(module_config.build_dir,
-                                module_config.build_type)
-
-    local args = {}
-    io.popen("source " .. build_dir.filename .. "/conanbuild.sh")
-
-    return {cmd = "echo", args = args}
-end
-
---- Task
----@param module_config table
----@return table
-local function deactivate(module_config, _)
-    local build_dir = parse_dir(module_config.build_dir,
-                                module_config.build_type)
-
-    local args = {build_dir.filename .. "/deactivateconanbuild.sh"}
-
-    return {cmd = "source", args = args}
-end
-
---- Task
----@param module_config table
----@return table
 local function build(module_config, _)
     local build_dir = parse_dir(module_config.build_dir,
                                 module_config.build_type)
@@ -304,8 +279,8 @@ cmake.params = {
 }
 cmake.condition = function() return Path:new('CMakeLists.txt'):exists() end
 cmake.tasks = {
-    configure = {source, configure, deactivate},
-    build = {source, build, deactivate},
+    configure = {configure},
+    build = {build},
     build_all = build_all,
     run = {build, run},
     debug = {build, debug},
