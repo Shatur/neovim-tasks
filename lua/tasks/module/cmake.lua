@@ -148,13 +148,20 @@ local function configure(module_config, _)
 
     local conan_toolchain = build_dir:joinpath('conan_toolchain.cmake')
 
+    local args = {
+        '-B', build_dir.filename, '-D',
+        'CMAKE_TOOLCHAIN_FILE=' .. conan_toolchain.filename, '-D',
+        'CMAKE_BUILD_TYPE=' .. module_config.build_type
+    }
+
+    vim.notify("CMake configure args: " .. vim.inspect(args),
+               vim.log.levels.INFO)
+    utils.notify("CMake configure args: " .. vim.inspect(args),
+                 vim.log.levels.INFO)
+
     return {
         cmd = module_config.cmd,
-        args = {
-            '-B', build_dir.filename, '-D',
-            'CMAKE_TOOLCHAIN_FILE=' .. conan_toolchain.filename, '-D',
-            'CMAKE_BUILD_TYPE=' .. module_config.build_type
-        },
+        args = args,
         after_success = copy_compile_commands
     }
 end
