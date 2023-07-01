@@ -144,10 +144,9 @@ local function configure(module_config, _)
     local build_dir = parse_dir(module_config.build_dir,
                                 module_config.build_type)
     build_dir:mkdir({parents = true})
-	build_dir:
     if not make_query_files(build_dir) then return nil end
 
-	local conan_toolchain = build_dir:joinpath('conan_toolchain.cmake')
+    local conan_toolchain = build_dir:joinpath('conan_toolchain.cmake')
 
     return {
         cmd = module_config.cmd,
