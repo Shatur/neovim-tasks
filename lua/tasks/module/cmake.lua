@@ -148,6 +148,8 @@ local function configure(module_config, _)
 
     local conan_toolchain = build_dir:joinpath('conan_toolchain.cmake')
 
+    io.popen("source " .. build_dir:joinpath("conanbuild.sh"))
+
     local args = {
         '-B', build_dir.filename, '-D',
         'CMAKE_TOOLCHAIN_FILE=' .. conan_toolchain.filename, '-D',
