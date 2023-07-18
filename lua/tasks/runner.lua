@@ -213,7 +213,7 @@ function runner.cancel_job()
 
   last_job:shutdown(1, 9)
 
-  if vim.fn.has('win32') == 1 then
+  if vim.fn.has('win32') == 1 or vim.fn.has('mac') == 1 then
     -- Kill all children.
     for _, pid in ipairs(vim.api.nvim_get_proc_children(last_job.pid)) do
       vim.loop.kill(pid, 9)
