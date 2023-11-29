@@ -78,7 +78,6 @@ end
 
 ---@return table: List of functions for each cargo subcommand that return a task table.
 local function get_cargo_subcommands()
-  local cmd = 'cargo'
   local cargo_subcommands = {}
 
   local ok, job = pcall(Job.new, Job, {
@@ -87,7 +86,7 @@ local function get_cargo_subcommands()
     enabled_recording = true,
   })
   if not ok then
-    utils.notify(job, vim.log.levels.WARN)
+    utils.notify("Unable to execute 'cargo' command", vim.log.levels.WARN)
     return {}
   end
   job:sync()
