@@ -26,6 +26,7 @@ Tasks in this plugin are provided by modules that implement functionality for a 
 
 - [CMake](https://cmake.org) via [cmake-file-api](https://cmake.org/cmake/help/latest/manual/cmake-file-api.7.html#codemodel-version-2).
 - [Cargo](https://doc.rust-lang.org/cargo).
+- [GNU Make](https://www.gnu.org/software/make/)
 
 You can also write [your own module](#modules-creation-and-configuration).
 
@@ -89,6 +90,31 @@ require('tasks').setup({
 4. Build and run the project via `:Task start cargo run` or build and debug using `:Task start cargo debug`.
 
 Cargo module doesn't have a `target` param which specific to CMake because `cargo run` automatically pick the binary. If there is multiple binaries, you can set which one you want to run using `--bin` or `--project` in step 2 as you do in CLI.
+
+### GNU Make
+
+1. Open a Make project.
+2. Run a Make target `<target>` with `:Task start make <target>`.
+
+To override targets or add custom `make` options, configure the appropriate task:
+
+```lua
+require('tasks').setup({
+  default_params = {
+    ...
+    make = {
+      cmd = 'make',
+      args = {
+        all = { '-j10', 'all' },    -- :Task start make all   → make -j10 all
+        build = {},                 -- :Task start make build → make
+        nuke = { 'clean' },         -- :Task start make nuke  → make clean
+      },
+    },
+    ...
+  }
+})
+```
+
 
 ## Modules creation and configuration
 
