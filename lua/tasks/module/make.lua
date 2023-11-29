@@ -17,7 +17,6 @@ return {
           args = module_config.args and module_config.args[target] or { target },
         }
       end
-    end
-  })
+    end,
+  }),
 }
-
