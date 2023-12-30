@@ -60,14 +60,11 @@ end
 
 ---@return table
 function utils.get_module_names()
-  local module_dir = Path:new(debug.getinfo(1).source:sub(2)):parent() / 'module'
-
   local modules = {}
-  for _, entry in ipairs(scandir.scan_dir(module_dir.filename, { depth = 1 })) do
-    -- Strip full path and extension
-    local extension_len = 4
-    local parent_offset = 2
-    table.insert(modules, entry:sub(#Path:new(entry):parent().filename + parent_offset, #entry - extension_len))
+
+  local runtime_files = vim.api.nvim_get_runtime_file("lua/tasks/module/*.lua", true)
+  for _, file in ipairs(runtime_files) do
+    table.insert(modules, vim.fn.fnamemodify(file, ":t:r"))
   end
 
   return modules
