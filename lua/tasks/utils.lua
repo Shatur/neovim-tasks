@@ -1,5 +1,3 @@
-local scandir = require('plenary.scandir')
-local Path = require('plenary.path')
 local utils = {}
 
 local args_regex = vim.regex([[\s\%(\%([^'"]*\(['"]\)[^'"]*\1\)*[^'"]*$\)\@=]])
@@ -62,9 +60,9 @@ end
 function utils.get_module_names()
   local modules = {}
 
-  local runtime_files = vim.api.nvim_get_runtime_file("lua/tasks/module/*.lua", true)
+  local runtime_files = vim.api.nvim_get_runtime_file('lua/tasks/module/*.lua', true)
   for _, file in ipairs(runtime_files) do
-    table.insert(modules, vim.fn.fnamemodify(file, ":t:r"))
+    table.insert(modules, vim.fn.fnamemodify(file, ':t:r'))
   end
 
   return modules
