@@ -23,7 +23,10 @@ end
 --- Writes all values as JSON to disk.
 function ProjectConfig:write()
   local params_file = Path:new(config.params_file)
+  local tmp_dap_open_command = self.dap_open_command
+  self.dap_open_command = nil
   params_file:write(vim.json.encode(self), 'w')
+  self.dap_open_command = tmp_dap_open_command
 end
 
 return ProjectConfig
