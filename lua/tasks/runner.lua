@@ -104,9 +104,9 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
     end
   end
 
-  local cwd = command.cwd or vim.loop.cwd()
+  local cwd = command.cwd or vim.uv.cwd()
   local args = command.args and command.args or {}
-  local env = vim.tbl_extend('force', vim.loop.os_environ(), command.env and command.env or {})
+  local env = vim.tbl_extend('force', vim.uv.os_environ(), command.env and command.env or {})
   if #commands == 1 then
     -- Apply task parameters only to the last command
     vim.list_extend(args, addition_args)
@@ -216,10 +216,10 @@ function runner.cancel_job()
   if vim.fn.has('win32') == 1 or vim.fn.has('mac') == 1 then
     -- Kill all children.
     for _, pid in ipairs(vim.api.nvim_get_proc_children(last_job.pid)) do
-      vim.loop.kill(pid, 9)
+      vim.uv.kill(pid, 9)
     end
   else
-    vim.loop.kill(last_job.pid, 9)
+    vim.uv.kill(last_job.pid, 9)
   end
   return true
 end

@@ -10,7 +10,7 @@ local cmake = {}
 ---@param build_type string
 ---@return table
 local function parse_dir(dir, build_type)
-  local parsed_dir = dir:gsub('{cwd}', vim.loop.cwd())
+  local parsed_dir = dir:gsub('{cwd}', vim.uv.cwd())
   parsed_dir = parsed_dir:gsub('{os}', os)
   parsed_dir = parsed_dir:gsub('{build_type}', build_type:lower())
   return Path:new(parsed_dir)
@@ -120,7 +120,7 @@ local function copy_compile_commands()
   local project_config = ProjectConfig.new()
   local filename = 'compile_commands.json'
   local source = parse_dir(project_config.cmake.build_dir, project_config.cmake.build_type) / filename
-  local destination = Path:new(vim.loop.cwd(), filename)
+  local destination = Path:new(vim.uv.cwd(), filename)
   source:copy({ destination = destination.filename })
 end
 
