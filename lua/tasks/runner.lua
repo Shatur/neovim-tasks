@@ -1,5 +1,6 @@
 local config = require('tasks.config')
 local Job = require('plenary.job')
+local utils = require('tasks.utils')
 local runner = {}
 
 local last_job
@@ -131,6 +132,11 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
       end
       last_job = dap
     end)
+    return
+  end
+
+  if vim.fn.executable(command.cmd) == 0 then
+    utils.notify(string.format('Command "%s" is not executable', command.cmd), vim.log.levels.ERROR)
     return
   end
 

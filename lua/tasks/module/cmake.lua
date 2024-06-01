@@ -27,7 +27,7 @@ local function get_reply_dir(build_dir) return build_dir / '.cmake' / 'api' / 'v
 ---@return table
 local function get_target_info(codemodel_target, reply_dir) return vim.json.decode((reply_dir / codemodel_target['jsonFile']):read()) end
 
---- Creates query files that to acess information about targets after CMake configuration.
+--- Creates query files to access information about targets after CMake configuration.
 ---@param build_dir table
 ---@return boolean: Returns `true` on success.
 local function make_query_files(build_dir)
