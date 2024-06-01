@@ -63,7 +63,7 @@ function tasks.set_module_param(module_type, param_name)
   if not param then
     if vim.tbl_contains(module.params, param_name) then
       -- Contains a string without a value, request for input
-      vim.ui.input({ prompt = string.format('Set "%s" for module "%s"', param_name, module_name), default = current_value }, function(input)
+      vim.ui.input({ prompt = string.format('Set "%s" for module "%s": ', param_name, module_name), default = current_value }, function(input)
         project_config[module_name][param_name] = input
         project_config:write()
       end)
