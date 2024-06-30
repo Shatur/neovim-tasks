@@ -1,6 +1,6 @@
 # Neovim Tasks
 
-A Neovim 0.7+ plugin that provides a stateful task system focused on integration with build systems.
+A Neovim plugin that provides a stateful task system focused on integration with build systems.
 
 Tasks in this plugin are provided by modules that implement functionality for a specific build system. Modules can have custom parameters which user can set via `:Task set_module_param` (like current target or build type). Tasks consists of one or more commands and have `args` and `env` parameters to set arguments and environment variable respectively. All this settings are serializable and will be stored in configuration file in your project directory.
 
