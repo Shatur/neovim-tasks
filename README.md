@@ -118,7 +118,7 @@ require('tasks').setup({
 
 ## Modules creation and configuration
 
-To create a module just put a lua file under `lua/tasks/modules` in your configuration or submit your module as a PR. In this module you need to return a table with the following fields:
+To create a module just put a lua file under `lua/tasks/module` in your configuration or submit your module as a PR. In this module you need to return a table with the following fields:
 
 ```lua
 {
@@ -150,4 +150,4 @@ To create a module just put a lua file under `lua/tasks/modules` in your configu
 
 For a more complex example take a look at [cargo.lua](lua/tasks/module/cargo.lua).
 
-You can also edit existing modules in right in your config. Just import a module using `require('tasks.modules.module_name')` and add/remove/modify any fields from the above.
+You can also edit existing modules in right in your config. Just import a module using `require('tasks.module.module_name')` and add/remove/modify any fields from the above.
