@@ -10,7 +10,10 @@ local cmake = {}
 ---@param build_type string
 ---@return table
 local function parse_dir(dir, build_type)
-  local parsed_dir = dir:gsub('{cwd}', vim.uv.cwd())
+  local cwd = vim.uv.cwd()
+  local cwd_dirname = vim.fn.fnamemodify(cwd, ':t')
+  local parsed_dir = dir:gsub('{cwd}', cwd)
+  parsed_dir = parsed_dir:gsub('{cwd_dirname}', cwd_dirname)
   parsed_dir = parsed_dir:gsub('{os}', os)
   parsed_dir = parsed_dir:gsub('{build_type}', build_type:lower())
   return Path:new(parsed_dir)
