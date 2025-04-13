@@ -10,7 +10,10 @@ local cmake = {}
 ---@param build_type string
 ---@return table
 local function parse_dir(dir, build_type)
-  local parsed_dir = dir:gsub('{cwd}', vim.uv.cwd())
+  local cwd = vim.uv.cwd()
+  local cwd_dirname = vim.fn.fnamemodify(cwd, ':t')
+  local parsed_dir = dir:gsub('{cwd}', cwd)
+  parsed_dir = parsed_dir:gsub('{cwd_dirname}', cwd_dirname)
   parsed_dir = parsed_dir:gsub('{os}', os)
   parsed_dir = parsed_dir:gsub('{build_type}', build_type:lower())
   return Path:new(parsed_dir)
@@ -129,6 +132,7 @@ end
 ---@return table?
 local function configure(module_config, _)
   local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
+  utils.notify(string.format('Build directory is set to "%s"', build_dir), vim.log.levels.INFO)
   build_dir:mkdir({ parents = true })
   if not make_query_files(build_dir) then
     return nil
