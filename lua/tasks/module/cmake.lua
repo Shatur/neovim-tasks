@@ -255,6 +255,15 @@ local function open_build_dir(module_config, _)
   }
 end
 
+--- Task
+---@param module_config table
+---@return table
+local function edit_cache(module_config, _)
+  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
+  vim.cmd.edit(tostring(build_dir / 'CMakeCache.txt'))
+  return nil
+end
+
 cmake.params = {
   target = get_target_names,
   build_type = { 'Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel' },
@@ -270,6 +279,7 @@ cmake.tasks = {
   debug = { build, debug },
   clean = clean,
   open_build_dir = open_build_dir,
+  edit_cache = edit_cache,
 }
 
 return cmake
