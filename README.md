@@ -27,6 +27,7 @@ Tasks in this plugin are provided by modules that implement functionality for a 
 - [CMake](https://cmake.org) via [cmake-file-api](https://cmake.org/cmake/help/latest/manual/cmake-file-api.7.html#codemodel-version-2).
 - [Cargo](https://doc.rust-lang.org/cargo).
 - [GNU Make](https://www.gnu.org/software/make/)
+- [Zig](https://ziglang.org/learn/build-system/)
 
 You can also write [your own module](#modules-creation-and-configuration).
 
@@ -61,6 +62,9 @@ require('tasks').setup({
       args = { -- Task default arguments.
         configure = { '-D', 'CMAKE_EXPORT_COMPILE_COMMANDS=1', '-G', 'Ninja' },
       },
+    },
+    zig = {
+      cmd = 'zig',
     },
   },
   save_before_run = true, -- If true, all files will be saved before executing a task.
