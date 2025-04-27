@@ -15,6 +15,9 @@ local config = {
       cargo = {
         dap_name = 'lldb',
       },
+      zig = {
+        cmd = 'zig',
+      },
     },
     save_before_run = true,
     params_file = 'neovim.json',
