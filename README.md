@@ -65,6 +65,9 @@ require('tasks').setup({
     },
     zig = {
       cmd = 'zig',
+      dap_name = 'codelldb',
+      build_type = 'Debug',
+      build_step = 'install',
     },
   },
   save_before_run = true, -- If true, all files will be saved before executing a task.
@@ -118,6 +121,34 @@ require('tasks').setup({
   }
 })
 ```
+
+### Zig
+
+#### Quick start with a zig file
+
+1. Open zig file that contains `main`
+2. Run `:Task start zig run_file`
+3. To start debugging the file, run `:Task start zig debug_file`
+
+#### Quick start with a project that contains `build.zig` file
+
+1. Open Zig project
+2. Select a build step with `:Task set_module_param zig build_step`.
+3. Select a build type with `:Task set_module_param zig build_type`
+4. Run selected build step with `:Task start zig build`
+
+#### All available zig tasks
+
+- `build` - invokes `zig build` with step configured as `build_step` with build type configured as `build_type`
+- `clean` - deletes the `zig-out` folder (works only on Unix shells at the moment)
+- `clean_cache` - deletes the `.zig-cache` folder (works only on Unix shells at the moment)
+- `clean_all` - invokes forst `clean`, then `clean_cache`
+- `run_file` - invokes `zig run` for currently open buffer. Obeys `build_type`
+- `debug_file` - starts debugger for currently open buffer (effectively as `run_file`, but under debugger)
+- `test_file` - invokes `zig test` for currently open buffer. Obeys `build_type`.
+- `debug_test_file` -same as `test_file`, but under debugger
+- `run_current_test` - invokes `zig test` for currently open buffer with test filter set to a first test above current cursor location. If test filter cannot be calculated, all tests in current file are run (behavior same as `test_file`).
+- `debug_current_test` - same as `run_current_test`, but under debugger
 
 
 ## Modules creation and configuration
