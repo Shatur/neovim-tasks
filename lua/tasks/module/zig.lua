@@ -7,12 +7,15 @@ local build_type_map = {
   ReleaseFast = 'fast',
 }
 
+local function zig_command(module_config) return module_config.cmd or 'zig' end
+local function build_type(module_config) return module_config.build_type or 'Debug' end
+
 local function build(module_config, _)
-  local build_target = module_config.build_step
-  local build_type = build_type_map[module_config.build_type]
+  local build_target = module_config.build_step or 'install'
+  local bt = build_type_map[build_type(module_config)]
   return {
-    cmd = module_config.cmd,
-    args = { 'build', build_target, '--release=' .. build_type },
+    cmd = zig_command(module_config),
+    args = { 'build', build_target, '--release=' .. bt },
   }
 end
 
@@ -45,8 +48,8 @@ end
 local function run_file(module_config, _)
   local currentSource = vim.fn.expand('%')
   return {
-    cmd = module_config.cmd,
-    args = { 'run', '-O' .. module_config.build_type, currentSource, '--' },
+    cmd = zig_command(module_config),
+    args = { 'run', '-O' .. build_type(module_config), currentSource, '--' },
   }
 end
 
@@ -54,8 +57,8 @@ local function build_file_as_exe(module_config, _)
   local currentSource = vim.fn.expand('%')
   local srcFilename = vim.fn.fnamemodify(currentSource, ':t:r')
   return {
-    cmd = module_config.cmd,
-    args = { 'build-exe', currentSource, '-femit-bin=.zig-cache/run-' .. srcFilename, '-O' .. module_config.build_type },
+    cmd = zig_command(module_config),
+    args = { 'build-exe', currentSource, '-femit-bin=.zig-cache/run-' .. srcFilename, '-O' .. build_type(module_config) },
   }
 end
 
@@ -71,8 +74,8 @@ end
 local function test_file(module_config, _)
   local currentSource = vim.fn.expand('%')
   return {
-    cmd = module_config.cmd,
-    args = { 'test', '-O' .. module_config.build_type, currentSource },
+    cmd = zig_command(module_config),
+    args = { 'test', '-O' .. build_type(module_config), currentSource },
   }
 end
 
@@ -80,8 +83,8 @@ local function build_test_file(module_config, _)
   local currentSource = vim.fn.expand('%')
   local srcFilename = vim.fn.fnamemodify(currentSource, ':t:r')
   return {
-    cmd = module_config.cmd,
-    args = { 'test', currentSource, '-femit-bin=.zig-cache/test-' .. srcFilename, '--test-no-exec', '-O' .. module_config.build_type },
+    cmd = zig_command(module_config),
+    args = { 'test', currentSource, '-femit-bin=.zig-cache/test-' .. srcFilename, '--test-no-exec', '-O' .. build_type(module_config) },
   }
 end
 
@@ -110,13 +113,13 @@ local function run_current_test(module_config, _)
   local test_filter = get_current_test_filter()
   if test_filter ~= nil then
     return {
-      cmd = module_config.cmd,
-      args = { 'test', '-O' .. module_config.build_type, currentSource, '--test-filter', test_filter },
+      cmd = zig_command(module_config),
+      args = { 'test', '-O' .. build_type(module_config), currentSource, '--test-filter', test_filter },
     }
   else
     return {
-      cmd = module_config.cmd,
-      args = { 'test', '-O' .. module_config.build_type, currentSource },
+      cmd = zig_command(module_config),
+      args = { 'test', '-O' .. build_type(module_config), currentSource },
     }
   end
 end
@@ -127,13 +130,13 @@ local function build_current_test(module_config, _)
   local test_filter = get_current_test_filter()
   if test_filter == nil then
     return {
-      cmd = module_config.cmd,
-      args = { 'test', currentSource, '-femit-bin=.zig-cache/test-' .. srcFilename, '--test-no-exec', '-O' .. module_config.build_type },
+      cmd = zig_command(module_config),
+      args = { 'test', currentSource, '-femit-bin=.zig-cache/test-' .. srcFilename, '--test-no-exec', '-O' .. build_type(module_config) },
     }
   else
     return {
-      cmd = module_config.cmd,
-      args = { 'test', currentSource, '-femit-bin=.zig-cache/test-' .. srcFilename, '--test-no-exec', '-O' .. module_config.build_type, '--test-filter', test_filter },
+      cmd = zig_command(module_config),
+      args = { 'test', currentSource, '-femit-bin=.zig-cache/test-' .. srcFilename, '--test-no-exec', '-O' .. build_type(module_config), '--test-filter', test_filter },
     }
   end
 end
