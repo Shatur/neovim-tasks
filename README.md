@@ -65,20 +65,20 @@ require('tasks').setup({
       },
     },
     zig = {
-      cmd = 'zig',
-      dap_name = 'codelldb',
-      build_type = 'Debug',
-      build_step = 'install',
+      cmd = 'zig',            -- zig command which will be invoked
+      dap_name = 'codelldb',  -- DAP configuration name from `require('dap').configurations`. If there is no such configuration, a new one with this name as `type` will be created.
+      build_type = 'Debug',   -- build type, can be changed using `:Task set_module_param zig build_type`
+      build_step = 'install', -- build step, cah be changed using `:Task set_module_param zig build_step`
     },
     cargo = {
-        dap_name = 'codelldb',
+        dap_name = 'codelldb',  -- DAP configuration name from `require('dap').configurations`. If there is no such configuration, a new one with this name as `type` will be created.
     },
     npm = {
-        cmd = 'npm',
-        working_directory = vim.loop.cwd(),
+        cmd = 'npm',                         -- npm command which will be invoked. If using yarn or pnpm, change here.
+        working_directory = vim.loop.cwd(),  -- working directory in which NPM will be invoked
     },
     make = {
-      cmd = 'make',
+      cmd = 'make',                 -- make command which will be invoked
       args = {
         all = { '-j10', 'all' },    -- :Task start make all   → make -j10 all
         build = {},                 -- :Task start make build → make
