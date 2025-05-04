@@ -260,7 +260,7 @@ CMake with Kits task module will generate following tasks:
 - `reconfigure` — equivalent to `purge` + `configure`
 
 
-### CMake with Kits example
+### More CMake examples
 
 #### Example mappings
 
