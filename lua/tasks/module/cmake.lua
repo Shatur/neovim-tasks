@@ -85,8 +85,8 @@ local function configure( module_config, _ )
     else
         local buildTypes = cmake_utils.getCMakeBuildTypesFromConfig( module_config )
         local cmakeKits = cmake_utils.getCMakeKitsFromConfig( module_config )
-        local build_type_config = buildTypes[ module_config.build_type ]
-        local build_kit_config  = cmakeKits[ module_config.build_kit ]
+        local build_type_config = buildTypes[ module_config.build_type ] or { build_type = 'Debug' }
+        local build_kit_config  = cmakeKits[ module_config.build_kit ] or { generator = 'Ninja' }
 
         local cmakeBuildType = build_type_config.build_type
 
@@ -126,10 +126,12 @@ local function configure( module_config, _ )
             end
         end
 
+        local build_kit = cmakeKits[ module_config.build_kit ] or { environment_variables = nil }
+
         return {
             cmd = module_config.cmd,
             args = args,
-            env = cmakeKits[ module_config.build_kit ].environment_variables,
+            env = build_kit.environment_variables,
             after_success = cmake_utils.reconfigureClangd,
         }
     end

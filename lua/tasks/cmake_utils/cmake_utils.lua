@@ -3,6 +3,7 @@ local ProjectConfig = require( 'tasks.project_config' )
 local scandir = require( 'plenary.scandir' )
 local utils = require( 'tasks.utils' )
 local cmake_presets = require( 'tasks.cmake_utils.cmake_presets' )
+local operating_system = require('ffi').os:lower()
 
 -- Returns true if presets should be used
 -- @param module_config table: cmake module config object or None - if not given, a global default will be used
@@ -36,6 +37,7 @@ local function getBuildDirFromConfig( module_config )
         build_dir = build_dir:gsub( '{build_kit}', buildKit:lower() )
         build_dir = build_dir:gsub( '{project_name}', projectName )
         build_dir = build_dir:gsub( '{home}', home )
+        build_dir = build_dir:gsub( '{os}', operating_system )
         return Path:new( build_dir )
     end
 end
@@ -51,7 +53,7 @@ end
 -- @param module_config table: cmake module config object
 -- @return table
 local function getCMakeKitsFromConfig( module_config )
-    local cmake_path = module_config.cmake_file
+    local cmake_path = module_config.cmake_kits_file
     if cmake_path and Path:new( cmake_path ):exists() then
         return vim.json.decode( Path:new( cmake_path ):read() )
     else
