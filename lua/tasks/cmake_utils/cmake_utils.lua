@@ -2,7 +2,7 @@ local Path = require('plenary.path')
 local ProjectConfig = require( 'tasks.project_config' )
 local scandir = require( 'plenary.scandir' )
 local utils = require( 'tasks.utils' )
-local cmake_presets = require( 'tasks.cmake_presets' )
+local cmake_presets = require( 'tasks.cmake_utils.cmake_presets' )
 
 -- Returns true if presets should be used
 -- @param module_config table: cmake module config object or None - if not given, a global default will be used
@@ -27,8 +27,8 @@ local function getBuildDirFromConfig( module_config )
         return Path:new( buildDirForPreset )
     else
         local build_dir = module_config.build_dir
-        local buildType = module_config.build_type
-        local buildKit = module_config.build_kit
+        local buildType = module_config.build_type or 'Debug'
+        local buildKit = module_config.build_kit or 'default'
         local projectName = vim.fn.fnamemodify( '$PWD', ':p:h:t' )
         local home = os.getenv( 'HOME' )
         build_dir = build_dir:gsub( '{cwd}', vim.loop.cwd() )
@@ -230,7 +230,6 @@ local function currentClangdArgs()
         local buildKit = cmakeKits[ module_config.build_kit ]
         -- this can happen when someone manually sets the build_kit
         if not buildKit then
-            vim.notify( 'Unknown build kit ' .. module_config.build_kit .. ' set. Cannot prepare clangd parameters!', vim.log.levels.ERROR )
             return clangdArgs
         end
         if buildKit.query_driver then
