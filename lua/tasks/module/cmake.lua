@@ -1,39 +1,45 @@
 local Path = require('plenary.path')
 local utils = require('tasks.utils')
-local scandir = require('plenary.scandir')
-local ProjectConfig = require('tasks.project_config')
-local os = require('ffi').os:lower()
-local cmake = {}
+local cmake_utils = require('tasks.cmake_utils.cmake_utils')
+local cmake_presets = require('tasks.cmake_utils.cmake_presets')
 
---- Parses build dir expression.
----@param dir string: Path with expressions to replace.
----@param build_type string
----@return table
-local function parse_dir(dir, build_type)
-  local cwd = vim.uv.cwd()
-  local cwd_dirname = vim.fn.fnamemodify(cwd, ':t')
-  local parsed_dir = dir:gsub('{cwd}', cwd)
-  parsed_dir = parsed_dir:gsub('{cwd_dirname}', cwd_dirname)
-  parsed_dir = parsed_dir:gsub('{os}', os)
-  parsed_dir = parsed_dir:gsub('{build_type}', build_type:lower())
-  return Path:new(parsed_dir)
+local function getKeys(tbl)
+  local keys = {}
+  for k, _ in pairs(tbl) do
+    table.insert(keys, k)
+  end
+  return keys
 end
 
---- Returns reply directory that contains targets information.
----@param build_dir table
----@return unknown
-local function get_reply_dir(build_dir) return build_dir / '.cmake' / 'api' / 'v1' / 'reply' end
+local function getTargetNames()
+  local build_dir = cmake_utils.getBuildDir()
+  if not build_dir:is_dir() then
+    utils.notify(string.format('Build directory "%s" does not exist, you need to run "configure" task first', build_dir), vim.log.levels.ERROR)
+    return nil
+  end
 
---- Reads information about target.
----@param codemodel_target table
----@param reply_dir table
----@return table
-local function get_target_info(codemodel_target, reply_dir) return vim.json.decode((reply_dir / codemodel_target['jsonFile']):read()) end
+  local reply_dir = cmake_utils.getReplyDir(build_dir)
+  local codemodel_targets = cmake_utils.getCodemodelTargets(reply_dir)
+  if not codemodel_targets then
+    return nil
+  end
 
---- Creates query files to access information about targets after CMake configuration.
----@param build_dir table
----@return boolean: Returns `true` on success.
-local function make_query_files(build_dir)
+  local targets = {}
+  for _, target in ipairs(codemodel_targets) do
+    local target_info = cmake_utils.getTargetInfo(target, reply_dir)
+    local target_name = target_info['name']
+    if target_name:find('_autogen') == nil then
+      table.insert(targets, target_name)
+    end
+  end
+
+  -- always add 'all' target
+  table.insert(targets, 'all')
+
+  return targets
+end --
+
+local function makeQueryFiles(build_dir)
   local query_dir = build_dir / '.cmake' / 'api' / 'v1' / 'query'
   if not query_dir:mkdir({ parents = true }) then
     utils.notify(string.format('Unable to create "%s"', query_dir.filename), vim.log.levels.ERROR)
@@ -50,147 +56,309 @@ local function make_query_files(build_dir)
   return true
 end
 
---- Reads targets information.
----@param reply_dir table
----@return table?
-local function get_codemodel_targets(reply_dir)
-  local found_files = scandir.scan_dir(reply_dir.filename, { search_pattern = 'codemodel*' })
-  if #found_files == 0 then
-    utils.notify('Unable to find codemodel file', vim.log.levels.ERROR)
+-- inspired by https://github.com/Shatur/neovim-tasks/blob/master/lua/tasks/module/cmake.lua#L130
+-- but modified to also support build kits
+local function configure(module_config, _)
+  local usePresets = cmake_utils.shouldUsePresets(module_config)
+
+  if usePresets and not module_config.configure_preset then
+    utils.notify('No selected configure preset, please select it', vim.log.levels.ERROR)
     return nil
   end
-  local codemodel = Path:new(found_files[1])
-  local codemodel_json = vim.json.decode(codemodel:read())
-  return codemodel_json['configurations'][1]['targets']
+
+  local build_dir = cmake_utils.getBuildDir()
+  build_dir:mkdir({ parents = true })
+
+  if not makeQueryFiles(build_dir) then
+    return nil
+  end
+
+  if usePresets then
+    local currentPreset = module_config.configure_preset
+
+    return {
+      cmd = module_config.cmd,
+      cwd = module_config.source_dir,
+      args = { '--preset', currentPreset, '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' },
+      after_success = cmake_utils.reconfigureClangd,
+    }
+  else
+    local buildTypes = cmake_utils.getCMakeBuildTypesFromConfig(module_config)
+    local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+    local build_type_config = buildTypes[module_config.build_type] or { build_type = 'Debug' }
+    local build_kit_config = cmakeKits[module_config.build_kit] or { generator = 'Ninja' }
+
+    local cmakeBuildType = build_type_config.build_type
+
+    local generator = build_kit_config.generator and build_kit_config.generator or 'Ninja'
+    local buildTypeAware = true
+    if build_kit_config.build_type_aware ~= nil then
+      buildTypeAware = build_kit_config.build_type_aware
+    end
+
+    local args = { '-G', generator, '-B', build_dir.filename, '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' }
+    if buildTypeAware then
+      table.insert(args, '-DCMAKE_BUILD_TYPE=' .. cmakeBuildType)
+    end
+    if module_config.source_dir then
+      table.insert(args, '-S')
+      table.insert(args, module_config.source_dir)
+    end
+
+    if build_kit_config.toolchain_file then
+      table.insert(args, '-DCMAKE_TOOLCHAIN_FILE=' .. build_kit_config.toolchain_file)
+    end
+
+    if build_kit_config.compilers then
+      table.insert(args, '-DCMAKE_C_COMPILER=' .. build_kit_config.compilers.C)
+      table.insert(args, '-DCMAKE_CXX_COMPILER=' .. build_kit_config.compilers.CXX)
+    end
+
+    if build_type_config.cmake_usr_args then
+      for k, v in pairs(build_type_config.cmake_usr_args) do
+        table.insert(args, '-D' .. k .. '=' .. v)
+      end
+    end
+
+    if build_kit_config.cmake_usr_args then
+      for k, v in pairs(build_kit_config.cmake_usr_args) do
+        table.insert(args, '-D' .. k .. '=' .. v)
+      end
+    end
+
+    local build_kit = cmakeKits[module_config.build_kit] or { environment_variables = nil }
+
+    return {
+      cmd = module_config.cmd,
+      args = args,
+      env = build_kit.environment_variables,
+      after_success = cmake_utils.reconfigureClangd,
+    }
+  end
 end
 
----@return table?
-local function get_target_names()
-  local project_config = ProjectConfig.new()
-  local build_dir = parse_dir(project_config.cmake.build_dir, project_config.cmake.build_type)
-  if not build_dir:is_dir() then
-    utils.notify(string.format('Build directory "%s" does not exist, you need to run "configure" task first', build_dir), vim.log.levels.ERROR)
+local function build(module_config, _)
+  local usePresets = cmake_utils.shouldUsePresets(module_config)
+
+  if usePresets and not module_config.build_preset then
+    utils.notify('No selected build preset, please select it', vim.log.levels.ERROR)
     return nil
   end
 
-  local reply_dir = get_reply_dir(build_dir)
-  local codemodel_targets = get_codemodel_targets(reply_dir)
-  if not codemodel_targets then
-    return nil
-  end
+  if usePresets then
+    local buildPreset = module_config.build_preset
 
-  local targets = {}
-  for _, target in ipairs(codemodel_targets) do
-    local target_info = get_target_info(target, reply_dir)
-    local target_name = target_info['name']
-    if target_name:find('_autogen') == nil then
-      table.insert(targets, target_name)
+    local args = { '--build', '--preset', buildPreset }
+
+    if module_config.target and module_config.target ~= 'all' then
+      vim.list_extend(args, { '--target', module_config.target })
     end
-  end
 
-  return targets
+    return {
+      cmd = module_config.cmd,
+      cwd = module_config.source_dir,
+      args = args,
+    }
+  else
+    local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+    local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+
+    local args = { '--build', build_dir.filename }
+    if module_config.target and module_config.target ~= 'all' then
+      vim.list_extend(args, { '--target', module_config.target })
+    end
+
+    return {
+      cmd = module_config.cmd,
+      args = args,
+      env = cmakeKits[module_config.build_kit].environment_variables,
+    }
+  end
 end
 
---- Finds path to an executable.
----@param build_dir table
----@param name string
----@param reply_dir table
----@return unknown?
-local function get_executable_path(build_dir, name, reply_dir)
-  for _, target in ipairs(get_codemodel_targets(reply_dir)) do
-    if name == target['name'] then
-      local target_info = get_target_info(target, reply_dir)
-      if target_info['type'] ~= 'EXECUTABLE' then
-        utils.notify(string.format('Specified target "%s" is not an executable', name), vim.log.levels.ERROR)
-        return nil
-      end
+local function build_all(module_config, _)
+  local usePresets = cmake_utils.shouldUsePresets(module_config)
 
-      local target_path = Path:new(target_info['artifacts'][1]['path'])
-      if not target_path:is_absolute() then
-        target_path = build_dir / target_path
-      end
-
-      return target_path
-    end
+  if usePresets and not module_config.build_preset then
+    utils.notify('No selected build preset, please select it', vim.log.levels.ERROR)
+    return nil
   end
 
-  utils.notify(string.format('Unable to find target named "%s"', name), vim.log.levels.ERROR)
+  if usePresets then
+    return {
+      cmd = module_config.cmd,
+      cwd = module_config.source_dir,
+      args = { '--build', '--preset', module_config.build_preset },
+    }
+  else
+    local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+    local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+
+    return {
+      cmd = module_config.cmd,
+      args = { '--build', build_dir.filename },
+      env = cmakeKits[module_config.build_kit].environment_variables,
+    }
+  end
+end
+
+local function build_current_file(module_config, _)
+  local sourceName = vim.fn.expand('%')
+  local extension = vim.fn.fnamemodify(sourceName, ':e')
+
+  local headerExtensions = {
+    ['h'] = true,
+    ['hxx'] = true,
+    ['hpp'] = true,
+  }
+
+  if #extension == 0 or headerExtensions[extension] then
+    vim.notify('Given file is not a source file!', vim.log.levels.ERROR, { title = 'cmake' })
+    return nil
+  end
+
+  local ninjaTarget = vim.fn.fnameescape(vim.fn.fnamemodify(sourceName, ':p') .. '^')
+
+  local usePresets = cmake_utils.shouldUsePresets(module_config)
+
+  if usePresets and not module_config.build_preset then
+    utils.notify('No selected build preset, please select it', vim.log.levels.ERROR)
+    return nil
+  end
+
+  if usePresets then
+    local currentPreset = cmake_presets.get_preset_by_name(module_config.configure_preset, 'configurePresets', module_config.source_dir)
+
+    if not currentPreset or (currentPreset.generator ~= 'Ninja' and currentPreset.generator ~= 'Ninja Multi-Config') then
+      vim.notify('Build current file is supported only for Ninja generator at the moment!', vim.log.levels.ERROR, { title = 'cmake' })
+      return nil
+    end
+
+    return {
+      cmd = module_config.cmd,
+      cwd = module_config.source_dir,
+      args = { '--build', '--preset', module_config.build_preset, '--target', ninjaTarget },
+    }
+  else
+    local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+    local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+    local build_kit_config = cmakeKits[module_config.build_kit]
+    local generator = build_kit_config.generator and build_kit_config.generator or 'Ninja'
+
+    if generator ~= 'Ninja' and generator ~= 'Ninja Multi-Config' then
+      vim.notify('Build current file is supported only for Ninja generator at the moment!', vim.log.levels.ERROR, { title = 'cmake' })
+      return nil
+    end
+
+    return {
+      cmd = module_config.cmd,
+      args = { '--build', build_dir.filename, '--target', ninjaTarget },
+      env = cmakeKits[module_config.build_kit].environment_variables,
+    }
+  end
+end
+
+local function clean(module_config, _)
+  local usePresets = cmake_utils.shouldUsePresets(module_config)
+
+  if usePresets and not module_config.build_preset then
+    utils.notify('No selected build preset, please select it', vim.log.levels.ERROR)
+    return nil
+  end
+
+  if usePresets then
+    local args = { '--build', '--preset', module_config.build_preset, '--target', 'clean' }
+
+    return {
+      cmd = module_config.cmd,
+      cwd = module_config.source_dir,
+      args = args,
+    }
+  else
+    local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+    local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+
+    return {
+      cmd = module_config.cmd,
+      cwd = module_config.source_dir,
+      args = { '--build', build_dir.filename, '--target', 'clean' },
+      env = cmakeKits[module_config.build_kit].environment_variables,
+    }
+  end
+end
+
+local function purgeBuildDir(module_config, _)
+  local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+
+  return {
+    -- TODO: what about Windows?
+    cmd = 'rm',
+    args = { '-rf', tostring(build_dir) },
+  }
+end
+
+local function edit_cache(module_config, _)
+  local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+  vim.cmd.edit(tostring(build_dir / 'CMakeCache.txt'))
   return nil
 end
 
---- Copies compile_commands.json file from build directory to the current working directory for LSP integration.
-local function copy_compile_commands()
-  local project_config = ProjectConfig.new()
-  local filename = 'compile_commands.json'
-  local source = parse_dir(project_config.cmake.build_dir, project_config.cmake.build_type) / filename
-  local destination = Path:new(vim.uv.cwd(), filename)
-  source:copy({ destination = destination.filename })
+local function open_build_dir(module_config, _)
+  local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+
+  return {
+    cmd = os == 'windows' and 'start' or 'xdg-open',
+    args = { build_dir.filename },
+    ignore_stdout = true,
+    ignore_stderr = true,
+  }
 end
 
---- Task
----@param module_config table
----@return table?
-local function configure(module_config, _)
-  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
-  build_dir:mkdir({ parents = true })
-  if not make_query_files(build_dir) then
+local function trim(s) return s:match('^%s*(.*%S)') or '' end
+
+local function runCTest(module_config, _)
+  local usePresets = cmake_utils.shouldUsePresets(module_config)
+
+  -- assume test preset names are the same as build preset names
+  -- TODO: add support for separate test presets if needed
+  if usePresets and not module_config.build_preset then
+    utils.notify('No selected build preset, please select it', vim.log.levels.ERROR)
     return nil
   end
 
-  return {
-    cmd = module_config.cmd,
-    args = { '-B', build_dir.filename, '-D', 'CMAKE_BUILD_TYPE=' .. module_config.build_type },
-    after_success = copy_compile_commands,
-  }
-end
+  local numcpus = trim(vim.fn.system('nproc'))
+  if usePresets then
+    return {
+      cmd = 'ctest',
+      cwd = module_config.source_dir,
+      args = { '--preset', module_config.build_preset, '-j', numcpus, '--output-on-failure' },
+    }
+  else
+    local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
+    local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
 
---- Task
----@param module_config table
----@return table
-local function build(module_config, _)
-  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
-
-  local args = { '--build', build_dir.filename }
-  if module_config.target then
-    vim.list_extend(args, { '--target', module_config.target })
+    return {
+      cmd = 'ctest',
+      args = { '-C', module_config.build_type, '-j', numcpus, '--output-on-failure' },
+      cwd = tostring(build_dir),
+      env = cmakeKits[module_config.build_kit].environment_variables,
+    }
   end
-
-  return {
-    cmd = module_config.cmd,
-    args = args,
-    after_success = copy_compile_commands,
-  }
 end
 
---- Task
----@param module_config table
----@return table
-local function build_all(module_config, _)
-  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
-
-  return {
-    cmd = module_config.cmd,
-    args = { '--build', build_dir.filename },
-    after_success = copy_compile_commands,
-  }
-end
-
---- Task
----@param module_config table
----@return table?
 local function run(module_config, _)
   if not module_config.target then
     utils.notify('No selected target, please set "target" parameter', vim.log.levels.ERROR)
     return nil
   end
 
-  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
+  local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
   if not build_dir:is_dir() then
     utils.notify(string.format('Build directory "%s" does not exist, you need to run "configure" task first', build_dir), vim.log.levels.ERROR)
     return nil
   end
 
-  local target_path = get_executable_path(build_dir, module_config.target, get_reply_dir(build_dir))
+  local target_path = cmake_utils.getExecutablePath(build_dir, module_config.target, cmake_utils.getCurrentBuildType(module_config), cmake_utils.getReplyDir(build_dir))
   if not target_path then
     return
   end
@@ -206,19 +374,7 @@ local function run(module_config, _)
   }
 end
 
---- Task
----@param module_config table
----@return table?
 local function debug(module_config, _)
-  if module_config.build_type ~= 'Debug' and module_config.build_type ~= 'RelWithDebInfo' then
-    utils.notify(
-      string.format('For debugging your "build_type" param should be set to "Debug" or "RelWithDebInfo", but your current build type is "%s"'),
-      module_config.build_type,
-      vim.log.levels.ERROR
-    )
-    return nil
-  end
-
   local command = run(module_config, nil)
   if not command then
     return nil
@@ -228,58 +384,62 @@ local function debug(module_config, _)
   return command
 end
 
---- Task
----@param module_config table
----@return table
-local function clean(module_config, _)
-  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
+local function setupCMakeDAP(configure_command)
+  local dap = require('dap')
+  local args = { '--debugger', '--debugger-pipe=${pipe}' }
+  vim.list_extend(args, configure_command.args)
 
-  return {
-    cmd = module_config.cmd,
-    args = { '--build', build_dir.filename, '--target', 'clean' },
-    after_success = copy_compile_commands,
+  dap.adapters.cmake = {
+    type = 'pipe',
+    pipe = '${pipe}',
+    executable = {
+      command = configure_command.cmd,
+      args = args,
+    },
+  }
+  dap.configurations.cmake = {
+    type = 'cmake',
+    request = 'attach',
+    name = 'CMake Debugger',
   }
 end
 
---- Task
----@param module_config table
----@return table
-local function open_build_dir(module_config, _)
-  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
+local function configureDebug(module_config, _)
+  local command = configure(module_config, nil)
+  if not command then
+    return nil
+  end
 
-  return {
-    cmd = os == 'windows' and 'start' or 'xdg-open',
-    args = { build_dir.filename },
-    ignore_stdout = true,
-    ignore_stderr = true,
-  }
+  setupCMakeDAP(command)
+
+  command.dap_name = 'cmake'
+  return command
 end
 
---- Task
----@param module_config table
----@return table
-local function edit_cache(module_config, _)
-  local build_dir = parse_dir(module_config.build_dir, module_config.build_type)
-  vim.cmd.edit(tostring(build_dir / 'CMakeCache.txt'))
-  return nil
-end
-
-cmake.params = {
-  target = get_target_names,
-  build_type = { 'Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel' },
-  'cmd',
-  'dap_name',
+return {
+  params = {
+    target = getTargetNames,
+    build_type = function() return getKeys(cmake_utils.getCMakeBuildTypes()) end,
+    build_kit = function() return getKeys(cmake_utils.getCMakeKits()) end,
+    configure_preset = function() return cmake_presets.parse('configurePresets') end,
+    build_preset = function() return cmake_presets.parse('buildPresets') end,
+    ignore_presets = { true, false },
+  },
+  condition = function() return Path:new('CMakeLists.txt'):exists() end,
+  tasks = {
+    configure = configure,
+    configureDebug = configureDebug,
+    build = build,
+    build_all = build_all,
+    build_current_file = build_current_file,
+    run = { build, run },
+    debug = { build, debug },
+    clean = clean,
+    rebuild = { clean, build },
+    ctest = runCTest,
+    purge = purgeBuildDir,
+    reconfigure = { purgeBuildDir, configure },
+    open_build_dir = open_build_dir,
+    edit_cache = edit_cache,
+  },
 }
-cmake.condition = function() return Path:new('CMakeLists.txt'):exists() end
-cmake.tasks = {
-  configure = configure,
-  build = build,
-  build_all = build_all,
-  run = { build, run },
-  debug = { build, debug },
-  clean = clean,
-  open_build_dir = open_build_dir,
-  edit_cache = edit_cache,
-}
-
-return cmake
