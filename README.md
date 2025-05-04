@@ -28,6 +28,7 @@ Tasks in this plugin are provided by modules that implement functionality for a 
 - [Cargo](https://doc.rust-lang.org/cargo).
 - [GNU Make](https://www.gnu.org/software/make/)
 - [Zig](https://ziglang.org/learn/build-system/)
+- [NPM](https://www.npmjs.com/)
 
 You can also write [your own module](#modules-creation-and-configuration).
 
@@ -149,6 +150,35 @@ require('tasks').setup({
 - `debug_test_file` -same as `test_file`, but under debugger
 - `run_current_test` - invokes `zig test` for currently open buffer with test filter set to a first test above current cursor location. If test filter cannot be calculated, all tests in current file are run (behavior same as `test_file`).
 - `debug_current_test` - same as `run_current_test`, but under debugger
+
+### NPM
+
+1. Open a NPM project
+2. Run `:Task start npm install`
+3. You can also run any NPM script using `:Task start npm <script>`
+
+For example, imagine that your `package.json` contains lines like these:
+
+```json
+{
+    "scripts": {
+        "clean": "rimraf build dist",
+        "lint": "eslint --ext ts -c .eslintrc.json src",
+        "start": "NODE_PATH=$(pwd)/node_modules node $(pwd)/../core/scripts/https-serve.js dist",
+        "rollup": "rollup -c rollup.config.js",
+    }
+}
+```
+
+You can map then those commands with code like this:
+
+```lua
+vim.keymap.set( "n", "<leader>ni", [[:Task start npm install<cr>]] )
+vim.keymap.set( "n", "<leader>nl", [[:Task start npm run lint<cr>]] )
+vim.keymap.set( "n", "<leader>nr", [[:Task start npm run rollup<cr>]] )
+vim.keymap.set( "n", "<leader>ns", [[:Task start npm run clean<cr>]] )
+vim.keymap.set( "n", "<leader>ns", [[:Task start npm run start<cr>]] )
+```
 
 
 ## Modules creation and configuration
