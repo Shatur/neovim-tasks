@@ -5,10 +5,10 @@ local utils = require( 'tasks.utils' )
 local cmake_presets = require( 'tasks.cmake_presets' )
 
 -- Returns true if presets should be used
--- @param module_config table: cmake_kits module config object or None - if not given, a global default will be used
+-- @param module_config table: cmake module config object or None - if not given, a global default will be used
 -- @return boolean
 local function shouldUsePresets( module_config )
-    module_config = module_config or ProjectConfig:new()[ 'cmake_kits' ]
+    module_config = module_config or ProjectConfig:new()[ 'cmake' ]
     if module_config.ignore_presets then
         return false
     else
@@ -18,7 +18,7 @@ end
 
 
 -- Parses build directory expression
--- @param module_config table: cmake_kits module config object
+-- @param module_config table: cmake module config object
 -- @return table
 local function getBuildDirFromConfig( module_config )
     if shouldUsePresets( module_config ) and module_config.configure_preset then
@@ -44,16 +44,16 @@ end
 -- @return table
 local function getBuildDir()
     local project_config = ProjectConfig:new()
-    return getBuildDirFromConfig( project_config[ 'cmake_kits' ] )
+    return getBuildDirFromConfig( project_config[ 'cmake' ] )
 end
 
 -- Returns the object defining all CMake kits.
--- @param module_config table: cmake_kits module config object
+-- @param module_config table: cmake module config object
 -- @return table
 local function getCMakeKitsFromConfig( module_config )
-    local cmake_kits_path = module_config.cmake_kits_file
-    if cmake_kits_path and Path:new( cmake_kits_path ):exists() then
-        return vim.json.decode( Path:new( cmake_kits_path ):read() )
+    local cmake_path = module_config.cmake_file
+    if cmake_path and Path:new( cmake_path ):exists() then
+        return vim.json.decode( Path:new( cmake_path ):read() )
     else
         return {
             default = {
@@ -67,11 +67,11 @@ end
 -- @return table
 local function getCMakeKits()
     local project_config = ProjectConfig:new()
-    return getCMakeKitsFromConfig( project_config[ 'cmake_kits' ] )
+    return getCMakeKitsFromConfig( project_config[ 'cmake' ] )
 end
 
 -- Returns object defining all possible CMake build types with their configuration variables
--- @param module_config table: cmake_kits module config object
+-- @param module_config table: cmake module config object
 -- @return table
 local function getCMakeBuildTypesFromConfig( module_config )
     local cmake_build_types_path = module_config.cmake_build_types_file
@@ -91,7 +91,7 @@ end
 -- @return table
 local function getCMakeBuildTypes()
     local project_config = ProjectConfig:new()
-    return getCMakeBuildTypesFromConfig( project_config[ 'cmake_kits' ] )
+    return getCMakeBuildTypesFromConfig( project_config[ 'cmake' ] )
 end
 
 -- Calculates the reply directory for CMake File API
@@ -164,7 +164,7 @@ local function getExecutablePath( buildDir, name, buildType, replyDir )
 end
 
 local function getCurrentBuildType( module_config )
-    module_config = module_config or ProjectConfig:new()[ 'cmake_kits' ]
+    module_config = module_config or ProjectConfig:new()[ 'cmake' ]
     if shouldUsePresets( module_config ) and module_config.build_preset then
         local currentBuildPreset = cmake_presets.get_preset_by_name( module_config.build_preset, 'buildPresets', module_config.source_dir )
         if not currentBuildPreset then
@@ -180,7 +180,7 @@ end
 -- Returns the currently active CMake target and path to it's executable
 -- @return string, string
 local function getCurrentTargetAndExePath()
-    local cmakeConfig = ProjectConfig:new()[ 'cmake_kits' ]
+    local cmakeConfig = ProjectConfig:new()[ 'cmake' ]
     local buildDir = getBuildDirFromConfig( cmakeConfig )
     local executablePath = getExecutablePath( buildDir, cmakeConfig.target, getCurrentBuildType( cmakeConfig ), getReplyDir( buildDir ) )
     return cmakeConfig.target, tostring( executablePath )
@@ -200,7 +200,7 @@ end
 -- Returns currently active clangd command line parameters (including path to clangd binary)
 -- @return table: first element is path to clangd binary, and other elements are clangd command line arguments
 local function currentClangdArgs()
-    local module_config = ProjectConfig:new()[ 'cmake_kits' ]
+    local module_config = ProjectConfig:new()[ 'cmake' ]
     local clangdArgs = module_config.clangd_cmdline and module_config.clangd_cmdline or { 'clangd' }
 
     -- clean old compile-commands-dir and/or query-driver flags, if any
@@ -253,7 +253,7 @@ end
 -- @param module_config current module config or none (in that case global default will be used)
 -- @return table: compatible build presets
 local function getCompatibleBuildPresets( module_config )
-    module_config = module_config or ProjectConfig:new()[ 'cmake_kits' ]
+    module_config = module_config or ProjectConfig:new()[ 'cmake' ]
     if not module_config.configure_preset then
         utils.notify( 'Configure preset not selected.', vim.log.levels.ERROR )
         return nil
@@ -273,7 +273,7 @@ end
 
 local function autoselectBuildPresetForSameBuildType( projectConfig )
     projectConfig = projectConfig or ProjectConfig:new()
-    local cmakeConfig = projectConfig[ 'cmake_kits' ]
+    local cmakeConfig = projectConfig[ 'cmake' ]
     if not cmakeConfig.configure_preset or not cmakeConfig.build_preset then
         return
     end
@@ -299,7 +299,7 @@ end
 
 local function autoselectConfigurePresetFromCurrentBuildPreset( projectConfig )
     projectConfig = projectConfig or ProjectConfig:new()
-    local cmakeConfig = projectConfig[ 'cmake_kits' ]
+    local cmakeConfig = projectConfig[ 'cmake' ]
 
     if not cmakeConfig.build_preset then
         return
