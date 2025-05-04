@@ -76,7 +76,15 @@ require('tasks').setup({
     npm = {
         cmd = 'npm',
         working_directory = vim.loop.cwd(),
-    }
+    },
+    make = {
+      cmd = 'make',
+      args = {
+        all = { '-j10', 'all' },    -- :Task start make all   → make -j10 all
+        build = {},                 -- :Task start make build → make
+        nuke = { 'clean' },         -- :Task start make nuke  → make clean
+      },
+    },
   },
   save_before_run = true, -- If true, all files will be saved before executing a task.
   params_file = 'neovim.json', -- JSON file to store module and task parameters.
@@ -162,7 +170,7 @@ require('tasks').setup({
 
 1. Open a NPM project
 2. Run `:Task start npm install`
-3. You can also run any NPM script using `:Task start npm <script>`
+3. You can also run any NPM script using `:Task start npm run <script>`
 
 For example, imagine that your `package.json` contains lines like these:
 
