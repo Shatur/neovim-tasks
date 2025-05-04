@@ -37,7 +37,7 @@ function tasks.start(module_type, task_name, ...)
 
   local project_config = ProjectConfig.new()
   local module_config = project_config[module_name]
-  if not vim.tbl_islist(commands) then
+  if not vim.islist(commands) then
     commands = { commands }
   end
   runner.chain_commands(task_name, commands, module_config, { ... })
