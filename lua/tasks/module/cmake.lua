@@ -168,10 +168,12 @@ local function build(module_config, _)
       vim.list_extend(args, { '--target', module_config.target })
     end
 
+    local build_kit = cmakeKits[module_config.build_kit] or { environment_variables = nil }
+
     return {
       cmd = module_config.cmd,
       args = args,
-      env = cmakeKits[module_config.build_kit].environment_variables,
+      env = build_kit.environment_variables,
     }
   end
 end
@@ -193,11 +195,12 @@ local function build_all(module_config, _)
   else
     local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
     local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+    local build_kit = cmakeKits[module_config.build_kit] or { environment_variables = nil }
 
     return {
       cmd = module_config.cmd,
       args = { '--build', build_dir.filename },
-      env = cmakeKits[module_config.build_kit].environment_variables,
+      env = build_kit.environment_variables,
     }
   end
 end
@@ -250,10 +253,12 @@ local function build_current_file(module_config, _)
       return nil
     end
 
+    local build_kit = cmakeKits[module_config.build_kit] or { environment_variables = nil }
+
     return {
       cmd = module_config.cmd,
       args = { '--build', build_dir.filename, '--target', ninjaTarget },
-      env = cmakeKits[module_config.build_kit].environment_variables,
+      env = build_kit.environment_variables,
     }
   end
 end
@@ -277,12 +282,13 @@ local function clean(module_config, _)
   else
     local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
     local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+    local build_kit = cmakeKits[module_config.build_kit] or { environment_variables = nil }
 
     return {
       cmd = module_config.cmd,
       cwd = module_config.source_dir,
       args = { '--build', build_dir.filename, '--target', 'clean' },
-      env = cmakeKits[module_config.build_kit].environment_variables,
+      env = build_kit.environment_variables,
     }
   end
 end
@@ -336,12 +342,13 @@ local function runCTest(module_config, _)
   else
     local build_dir = cmake_utils.getBuildDirFromConfig(module_config)
     local cmakeKits = cmake_utils.getCMakeKitsFromConfig(module_config)
+    local build_kit = cmakeKits[module_config.build_kit] or { environment_variables = nil }
 
     return {
       cmd = 'ctest',
       args = { '-C', module_config.build_type, '-j', numcpus, '--output-on-failure' },
       cwd = tostring(build_dir),
-      env = cmakeKits[module_config.build_kit].environment_variables,
+      env = build_kit.environment_variables,
     }
   end
 end
