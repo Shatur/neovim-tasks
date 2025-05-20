@@ -335,7 +335,7 @@ vim.keymap.set( "n", "<leader>cv", selectBuildTypeOrPreset, { silent = true } )
 To correctly boot the `clangd` LSP on NeoVim startup, you can configure LSP to immediately use correct `clangd` arguments with following code:
 
 ```lua
-require( 'lspconfig' )[ 'clangd' ].setup({
+vim.lsp.config('clangd', {
     cmd = require( 'tasks.cmake_utils.cmake_utils' ).currentClangdArgs(),
 })
 ```
