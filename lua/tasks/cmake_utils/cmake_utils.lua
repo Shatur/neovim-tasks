@@ -242,15 +242,15 @@ end
 
 -- update query driver clangd flag and restart LSP
 local function reconfigureClangd()
-    local clangdArgs = currentClangdArgs()
-    vim.lsp.config('clangd', {
-        cmd = clangdArgs,
-        capabilities = {
-            offsetEncoding = { 'utf-8' },
-        },
-    })
-    vim.lsp.stop_client(vim.lsp.get_clients({ name = 'clangd' }))
-    vim.api.nvim_command('edit')
+  local clangdArgs = currentClangdArgs()
+  vim.lsp.config('clangd', {
+    cmd = clangdArgs,
+    capabilities = {
+      offsetEncoding = { 'utf-8' },
+    },
+  })
+  vim.lsp.stop_client(vim.lsp.get_clients({ name = 'clangd' }))
+  vim.api.nvim_command('edit')
 end
 
 -- Returns only build presets that match currently active configure preset
