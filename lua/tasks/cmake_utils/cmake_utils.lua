@@ -250,7 +250,7 @@ local function reconfigureClangd()
     },
   })
   vim.lsp.stop_client(vim.lsp.get_clients({ name = 'clangd' }))
-  vim.api.nvim_command('edit')
+  vim.defer_fn(function() vim.api.nvim_command('edit') end, 500)
 end
 
 -- Returns only build presets that match currently active configure preset
