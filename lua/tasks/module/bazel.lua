@@ -63,7 +63,7 @@ local function run(module_config, _)
   local pthTarget = Path:new(targetPath)
 
   if not pthTarget:is_file() then
-    utils.notify(string.format('Selected target "%s" is not built', pthTarget.filename), vim.log.levels.ERROR)
+    utils.notify(string.format('Selected target "%s" is not runnable', module_config.target), vim.log.levels.ERROR)
     return nil
   end
 
