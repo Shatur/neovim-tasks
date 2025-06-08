@@ -68,7 +68,6 @@ local function run(module_config, _)
 
   return {
     cmd = pthTarget.filename,
-    args = module_config.args or {},
   }
 end
 
