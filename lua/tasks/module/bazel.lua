@@ -81,6 +81,14 @@ local function debug(module_config, _)
   end
 
   command.dap_name = module_config.dap_name
+  -- note: https://github.com/vadimcn/codelldb/discussions/517#discussioncomment-1331286
+  -- Bazel replaces the actual source location with "/proc/self/cwd" in order to achieve repeatable builds.
+  -- You'll need to add "sourceMap": { "/proc/self/cwd": "${workspaceFolder}" } to your launch configuration.
+    command.dap_config = {
+        sourceMap = {
+            ["/proc/self/cwd"] = "${workspaceFolder}"
+        }
+    }
   return command
 end
 
