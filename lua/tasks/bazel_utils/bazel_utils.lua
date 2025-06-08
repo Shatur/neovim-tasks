@@ -15,5 +15,4 @@ function BazelUtils.getCurrentTargetAndExePath()
   return bazelConfig.target, tostring(targetPath)
 end
 
-
 return BazelUtils

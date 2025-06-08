@@ -127,7 +127,7 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
         cwd = cwd,
       }
       if command.dap_config then
-          dap_config_args = vim.tbl_extend('force', dap_config_args, command.dap_config)
+        dap_config_args = vim.tbl_extend('force', dap_config_args, command.dap_config)
       end
       dap.run(vim.tbl_extend('force', dap_config and dap_config or { type = command.dap_name }, dap_config_args))
       if config.dap_open_command then
