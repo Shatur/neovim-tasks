@@ -21,6 +21,7 @@ local Bazel = {
         'dap_name',
         build_type = { 'fastbuild', 'dbg', 'opt' },
         target = query_bazel_targets,
+        'compile_commands_refresh_target'
     },
     condition = function()
         return Path:new('WORKSPACE'):exists() or Path:new('MODULE.bazel'):exists()
@@ -91,5 +92,20 @@ function Bazel.tasks.test_all(module_config, _)
         args = { 'test', '//...', '--compilation_mode=' .. build_type(module_config) },
     }
 end
+
+local function restartClangd()
+    vim.lsp.stop_client(vim.lsp.get_clients({ name = 'clangd' }))
+    vim.defer_fn(function() vim.api.nvim_command('edit') end, 500)
+end
+
+function Bazel.tasks.refresh_compile_commands(module_config)
+    local refreshTarget = module_config.compile_commands_refresh_target or '@hedron_compile_commands//:refresh_all'
+    return {
+        cmd = bazel_command(module_config),
+        args = { 'run', refreshTarget, '--compilation_mode=' .. build_type(module_config) },
+        after_success = restartClangd,
+    }
+end
+
 
 return Bazel
