@@ -27,6 +27,7 @@ Tasks in this plugin are provided by modules that implement functionality for a 
 
 - [CMake](https://cmake.org) via [cmake-file-api](https://cmake.org/cmake/help/latest/manual/cmake-file-api.7.html#codemodel-version-2).
 - [Cargo](https://doc.rust-lang.org/cargo).
+- [Bazel](https://bazel.build)
 - [GNU Make](https://www.gnu.org/software/make/)
 - [Zig](https://ziglang.org/learn/build-system/)
 - [NPM](https://www.npmjs.com/)
@@ -71,10 +72,12 @@ require('tasks').setup({
           '--header-insertion=never',
           '--completion-style=detailed',
           '--offset-encoding=utf-8',
-          '--pch-storage=memory',
-          '--cross-file-rename',
           '-j=4',
         }, -- command line for invoking clangd - this array will be extended with --compile-commands-dir and --query-driver after each cmake configure with parameters inferred from build_kit, build_type and build_dir
+      },
+      bazel = {
+        cmd = 'bazel',
+        dap_name = 'codelldb',
       },
       zig = {
         cmd = 'zig', -- zig command which will be invoked
@@ -377,6 +380,20 @@ lualine.setup({
     }
 })
 ```
+
+## Bazel
+
+1. Open a Bazel project.
+2. Optionally set compilation mode with `:Task set_module_param bazel build_type`.
+3. Optionally set bazel target with `:Task set_module_param bazel target`.
+4. Optionally set target arguments using `:Task set_task_param bazel run args`.
+5. Build and run the project via `:Task start bazel run` or build and debug using `:Task start bazel debug`.
+
+### Clangd compile commands JSON generation
+
+Bazel does not natively support generating `compile_commands.json` file, which is required for `clangd` to work properly. However, you can use the [bazel-compile-commands-extractor](https://github.com/hedronvision/bazel-compile-commands-extractor) to create a Bazel target that will generate the `compile_commands.json` file for you. You can also define your own target to do that. Once you have the target, run `:Task set_module_param bazel compile_commands_refresh_target` to set the name of the target that will be invoked to refresh the `compile_commands.json` file. The default value is `@hedron_compile_commands//:refresh_all`.
+
+Once the refresh target is configured, you can run `:Task start bazel refresh_compile_commands` to regenerate the `compile_commands.json` file. This will also restart the `clangd` language server to pick up the changes.
 
 ## Cargo
 
