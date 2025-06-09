@@ -32,7 +32,7 @@ local function build(module_config, _)
   local target = module_config.target or '//...'
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'build', target, '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args) ),
+    args = vim.list_extend({ 'build', target, '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -41,7 +41,7 @@ Bazel.tasks.build = build
 function Bazel.tasks.build_all(module_config, _)
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'build', '//...', '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args) ),
+    args = vim.list_extend({ 'build', '//...', '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args)),
   }
 end
 
