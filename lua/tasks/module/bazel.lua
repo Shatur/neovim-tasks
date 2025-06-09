@@ -22,6 +22,7 @@ local Bazel = {
     build_type = { 'fastbuild', 'dbg', 'opt' },
     target = query_bazel_targets,
     'compile_commands_refresh_target',
+    'bazel_args',
   },
   condition = function() return Path:new('WORKSPACE'):exists() or Path:new('MODULE.bazel'):exists() end,
   tasks = {},
@@ -31,7 +32,7 @@ local function build(module_config, _)
   local target = module_config.target or '//...'
   return {
     cmd = bazel_command(module_config),
-    args = { 'build', target, '--compilation_mode=' .. build_type(module_config) },
+    args = vim.list_extend({ 'build', target, '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args) ),
   }
 end
 
@@ -40,7 +41,7 @@ Bazel.tasks.build = build
 function Bazel.tasks.build_all(module_config, _)
   return {
     cmd = bazel_command(module_config),
-    args = { 'build', '//...', '--compilation_mode=' .. build_type(module_config) },
+    args = vim.list_extend({ 'build', '//...', '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args) ),
   }
 end
 
@@ -95,7 +96,7 @@ Bazel.tasks.debug = { build, debug }
 function Bazel.tasks.test_all(module_config, _)
   return {
     cmd = bazel_command(module_config),
-    args = { 'test', '//...', '--compilation_mode=' .. build_type(module_config) },
+    args = vim.list_extend({ 'test', '//...', '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args)),
   }
 end
 
