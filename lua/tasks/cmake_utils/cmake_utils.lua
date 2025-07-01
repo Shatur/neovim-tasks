@@ -30,7 +30,7 @@ local function getBuildDirFromConfig(module_config)
     local buildType = module_config.build_type or 'Debug'
     local buildKit = module_config.build_kit or 'default'
     local projectName = vim.fn.fnamemodify('$PWD', ':p:h:t')
-    local home = os.getenv('HOME')
+    local home = os.getenv('HOME') or os.getenv('HOMEPATH') or os.getenv('USERPROFILE')
     build_dir = build_dir:gsub('{cwd}', vim.loop.cwd())
     build_dir = build_dir:gsub('{build_type}', buildType:lower())
     build_dir = build_dir:gsub('{build_kit}', buildKit:lower())
