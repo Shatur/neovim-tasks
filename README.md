@@ -75,7 +75,7 @@ require('tasks').setup({
           '-j=4',
         }, -- command line for invoking clangd - this array will be extended with --compile-commands-dir and --query-driver after each cmake configure with parameters inferred from build_kit, build_type and build_dir
         ignore_presets = false, -- if true, cmake presets will not be used, build_kit and build_type will be used instead even if CMakePresets.json or CMakeUserPresets.json files are present in the project root.
-        restart_clangd_on_configure = true, -- if true, clangd will be restarted after each cmake configure with updated compile_commands.json file and --query-driver parameters mattching current cmake build_kit and build_type or build_preset.
+        restart_clangd_after_configure = true, -- if true, clangd will be restarted after each cmake configure with updated compile_commands.json file and --query-driver parameters mattching current cmake build_kit and build_type or build_preset.
       },
       bazel = {
         cmd = 'bazel',

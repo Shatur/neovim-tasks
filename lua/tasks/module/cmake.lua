@@ -75,7 +75,7 @@ local function configure(module_config, _)
 
   local afterSuccessAction = cmake_utils.reconfigureClangd
   -- note: needs to be checked with "== false" to ensure nil is treated as true (the default)
-  if module_config.restard_clangd_after_configure == false then
+  if module_config.restart_clangd_after_configure == false then
     afterSuccessAction = nil
   end
 
@@ -437,7 +437,7 @@ return {
     configure_preset = function() return cmake_presets.parse('configurePresets') end,
     build_preset = function() return cmake_presets.parse('buildPresets') end,
     ignore_presets = { true, false },
-    restard_clangd_after_configure = { true, false },
+    restart_clangd_after_configure = { true, false },
   },
   condition = function() return Path:new('CMakeLists.txt'):exists() end,
   tasks = {
