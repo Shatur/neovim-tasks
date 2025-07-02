@@ -73,6 +73,12 @@ local function configure(module_config, _)
     return nil
   end
 
+  local afterSuccessAction = cmake_utils.reconfigureClangd
+  -- note: needs to be checked with "== false" to ensure nil is treated as true (the default)
+  if module_config.restard_clangd_after_configure == false then
+    afterSuccessAction = nil
+  end
+
   if usePresets then
     local currentPreset = module_config.configure_preset
 
@@ -80,7 +86,7 @@ local function configure(module_config, _)
       cmd = module_config.cmd,
       cwd = module_config.source_dir,
       args = { '--preset', currentPreset, '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' },
-      after_success = cmake_utils.reconfigureClangd,
+      after_success = afterSuccessAction,
     }
   else
     local buildTypes = cmake_utils.getCMakeBuildTypesFromConfig(module_config)
@@ -132,7 +138,7 @@ local function configure(module_config, _)
       cmd = module_config.cmd,
       args = args,
       env = build_kit.environment_variables,
-      after_success = cmake_utils.reconfigureClangd,
+      after_success = afterSuccessAction,
     }
   end
 end
@@ -431,6 +437,7 @@ return {
     configure_preset = function() return cmake_presets.parse('configurePresets') end,
     build_preset = function() return cmake_presets.parse('buildPresets') end,
     ignore_presets = { true, false },
+    restard_clangd_after_configure = { true, false },
   },
   condition = function() return Path:new('CMakeLists.txt'):exists() end,
   tasks = {
