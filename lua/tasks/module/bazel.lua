@@ -13,7 +13,14 @@ local function query_bazel_targets()
 end
 
 local function bazel_command(module_config) return module_config.cmd or 'bazel' end
-local function build_type(module_config) return module_config.build_type or 'fastbuild' end
+
+local function build_type(module_config)
+    if module_config.build_type and module_config.build_type ~= 'fastbuild' then
+        return '--compilation_mode=' .. module_config.build_type
+    else
+        return nil
+    end
+end
 
 local Bazel = {
   params = {
@@ -32,7 +39,7 @@ local function build(module_config, _)
   local target = module_config.target or '//...'
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'build', target, '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend({ 'build', target, build_type(module_config) }, utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -41,7 +48,7 @@ Bazel.tasks.build = build
 function Bazel.tasks.build_all(module_config, _)
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'build', '//...', '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend({ 'build', '//...', build_type(module_config) }, utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -96,7 +103,7 @@ Bazel.tasks.debug = { build, debug }
 function Bazel.tasks.test_all(module_config, _)
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'test', '//...', '--compilation_mode=' .. build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend({ 'test', '//...', build_type(module_config) }, utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -109,7 +116,7 @@ function Bazel.tasks.refresh_compile_commands(module_config)
   local refreshTarget = module_config.compile_commands_refresh_target or '@hedron_compile_commands//:refresh_all'
   return {
     cmd = bazel_command(module_config),
-    args = { 'run', refreshTarget, '--compilation_mode=' .. build_type(module_config) },
+    args = { 'run', refreshTarget, build_type(module_config) },
     after_success = restartClangd,
   }
 end
