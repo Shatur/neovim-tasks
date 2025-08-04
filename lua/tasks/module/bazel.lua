@@ -15,11 +15,11 @@ end
 local function bazel_command(module_config) return module_config.cmd or 'bazel' end
 
 local function build_type(module_config)
-    if module_config.build_type and module_config.build_type ~= 'fastbuild' then
-        return '--compilation_mode=' .. module_config.build_type
-    else
-        return nil
-    end
+  if module_config.build_type and module_config.build_type ~= 'fastbuild' then
+    return '--compilation_mode=' .. module_config.build_type
+  else
+    return nil
+  end
 end
 
 local Bazel = {
