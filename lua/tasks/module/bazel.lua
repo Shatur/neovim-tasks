@@ -107,6 +107,14 @@ function Bazel.tasks.test_all(module_config, _)
   }
 end
 
+function Bazel.tasks.test(module_config, _)
+  local target = module_config.target or '//...'
+  return {
+    cmd = bazel_command(module_config),
+    args = vim.list_extend({ 'test', target, build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+  }
+end
+
 local function restartClangd()
   vim.lsp.stop_client(vim.lsp.get_clients({ name = 'clangd' }))
   vim.defer_fn(function() vim.api.nvim_command('edit') end, 500)
