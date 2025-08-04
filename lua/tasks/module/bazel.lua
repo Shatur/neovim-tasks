@@ -124,7 +124,7 @@ function Bazel.tasks.refresh_compile_commands(module_config)
   local refreshTarget = module_config.compile_commands_refresh_target or '@hedron_compile_commands//:refresh_all'
   return {
     cmd = bazel_command(module_config),
-    args = { 'run', refreshTarget, build_type(module_config) },
+    args = vim.list_extend({ 'run', refreshTarget, build_type(module_config) }, utils.split_args(module_config.bazel_args)),
     after_success = restartClangd,
   }
 end
