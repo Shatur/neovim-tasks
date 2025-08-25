@@ -25,9 +25,9 @@ end
 local function global_bazel_args(module_config)
   local default_args = { '--announce_rc', '--show_timestamps', '--color=no', '--curses=no', '--show_progress' }
   if module_config.global_bazel_args then
-      return utils.split_args(module_config.global_bazel_args)
+    return utils.split_args(module_config.global_bazel_args)
   else
-      return default_args
+    return default_args
   end
 end
 
