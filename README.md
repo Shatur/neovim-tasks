@@ -391,6 +391,7 @@ lualine.setup({
 4. Optionally set target arguments using `:Task set_task_param bazel run args`.
 5. Optionally set other bazel arguments using `:Task set_module_param bazel bazel_args`.
    - For example, you can set `--copt="-g" --strip=never --spawn_strategy=local --disk_cache=false` to enable debugging on MacOS, regardless of the compilation mode.
+   - there is also `global_bazel_args` module parameter that will be added before any `bazel_args` to every bazel command. Use it to tweak the default bazel output.
 5. Build and run the project via `:Task start bazel run` or build and debug using `:Task start bazel debug`.
 
 ### Clangd compile commands JSON generation

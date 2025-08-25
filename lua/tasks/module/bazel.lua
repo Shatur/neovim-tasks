@@ -22,6 +22,15 @@ local function build_type(module_config)
   end
 end
 
+local function global_bazel_args(module_config)
+  local default_args = { '--announce_rc', '--show_timestamps', '--color=no', '--curses=no', '--show_progress' }
+  if module_config.global_bazel_args then
+      return utils.split_args(module_config.global_bazel_args)
+  else
+      return default_args
+  end
+end
+
 local Bazel = {
   params = {
     'cmd',
@@ -30,6 +39,7 @@ local Bazel = {
     target = query_bazel_targets,
     'compile_commands_refresh_target',
     'bazel_args',
+    'global_bazel_args',
   },
   condition = function() return Path:new('WORKSPACE'):exists() or Path:new('MODULE.bazel'):exists() end,
   tasks = {},
@@ -39,7 +49,7 @@ local function build(module_config, _)
   local target = module_config.target or '//...'
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'build', target, build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend(vim.list_extend({ 'build', target, build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -48,7 +58,7 @@ Bazel.tasks.build = build
 function Bazel.tasks.build_all(module_config, _)
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'build', '//...', build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend(vim.list_extend({ 'build', '//...', build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -103,7 +113,7 @@ Bazel.tasks.debug = { build, debug }
 function Bazel.tasks.test_all(module_config, _)
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'test', '//...', build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend(vim.list_extend({ 'test', '//...', build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -111,7 +121,7 @@ function Bazel.tasks.test(module_config, _)
   local target = module_config.target or '//...'
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'test', target, build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend(vim.list_extend({ 'test', target, build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)),
   }
 end
 
@@ -124,7 +134,7 @@ function Bazel.tasks.refresh_compile_commands(module_config)
   local refreshTarget = module_config.compile_commands_refresh_target or '@hedron_compile_commands//:refresh_all'
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend({ 'run', refreshTarget, build_type(module_config) }, utils.split_args(module_config.bazel_args)),
+    args = vim.list_extend(vim.list_extend({ 'run', refreshTarget, build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)),
     after_success = restartClangd,
   }
 end
