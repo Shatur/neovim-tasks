@@ -40,6 +40,8 @@ local Bazel = {
     'compile_commands_refresh_target',
     'bazel_args',
     'global_bazel_args',
+    'bazel_compile_commands_tool',
+    'bazel_compile_commands_tool_args',
   },
   condition = function() return Path:new('WORKSPACE'):exists() or Path:new('MODULE.bazel'):exists() end,
   tasks = {},
@@ -135,6 +137,16 @@ function Bazel.tasks.refresh_compile_commands(module_config)
   return {
     cmd = bazel_command(module_config),
     args = vim.list_extend(vim.list_extend({ 'run', refreshTarget, build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)),
+    after_success = restartClangd,
+  }
+end
+
+function Bazel.tasks.external_refresh_compile_commands(module_config)
+  local refreshTool = module_config.bazel_compile_commands_tool or 'bazel-compile-commands'
+  local refreshArgs = module_config.bazel_compile_commands_tool_args or '--verbose'
+  return {
+    cmd = refreshTool,
+    args = utils.split_args(refreshArgs),
     after_success = restartClangd,
   }
 end

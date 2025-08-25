@@ -396,9 +396,16 @@ lualine.setup({
 
 ### Clangd compile commands JSON generation
 
+#### Using bazel tools, such as [bazel-compile-commands-extractor](https://github.com/hedronvision/bazel-compile-commands-extractor)
+
 Bazel does not natively support generating `compile_commands.json` file, which is required for `clangd` to work properly. However, you can use the [bazel-compile-commands-extractor](https://github.com/hedronvision/bazel-compile-commands-extractor) to create a Bazel target that will generate the `compile_commands.json` file for you. You can also define your own target to do that. Once you have the target, run `:Task set_module_param bazel compile_commands_refresh_target` to set the name of the target that will be invoked to refresh the `compile_commands.json` file. The default value is `@hedron_compile_commands//:refresh_all`.
 
 Once the refresh target is configured, you can run `:Task start bazel refresh_compile_commands` to regenerate the `compile_commands.json` file. This will also restart the `clangd` language server to pick up the changes.
+
+#### Using [bazel-compile-commands tool](https://github.com/kiron1/bazel-compile-commands)
+
+Alternatively, if you don't want to pollute your Bazel workspace with special targets for extracting compile commands, you can use the [bazel-compile-commands](https://github.com/kiron1/bazel-compile-commands) tool. Follow the installation instructions in the tool's README. Once installed, you can define the `bazel_compile_commands_tool` module parameter to point to the executable of this tool. The default value is `bazel-compile-commands`. Additionally, set the `bazel_compile_commands_tool_args` module parameter to define any arguments that will be given to the tool. After setting this parameter, you can run `:Task start bazel external_refresh_compile_commands` to regenerate the `compile_commands.json` file and restart the `clangd` language server.
+
 
 ## Cargo
 
