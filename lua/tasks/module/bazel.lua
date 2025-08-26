@@ -71,7 +71,19 @@ function Bazel.tasks.clean(_, _)
   }
 end
 
-local function run(module_config, _)
+function Bazel.tasks.run(module_config, _)
+  if not module_config.target then
+    utils.notify('No selected target, please set "target" parameter', vim.log.levels.ERROR)
+    return nil
+  end
+  local target = module_config.target
+  return {
+    cmd = bazel_command(module_config),
+    args = vim.list_extend(vim.list_extend(vim.list_extend({ 'run', target, build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)), { '--' }),
+  }
+end
+
+local function run_for_debug(module_config, _)
   if not module_config.target then
     utils.notify('No selected target, please set "target" parameter', vim.log.levels.ERROR)
     return nil
@@ -81,7 +93,7 @@ local function run(module_config, _)
   local pthTarget = Path:new(targetPath)
 
   if not pthTarget:is_file() then
-    utils.notify(string.format('Selected target "%s" is not runnable', module_config.target), vim.log.levels.ERROR)
+    utils.notify(string.format('Selected target "%s" is not debuggable', module_config.target), vim.log.levels.ERROR)
     return nil
   end
 
@@ -90,10 +102,8 @@ local function run(module_config, _)
   }
 end
 
-Bazel.tasks.run = { build, run }
-
 local function debug(module_config, _)
-  local command = run(module_config, nil)
+  local command = run_for_debug(module_config, nil)
   if not command then
     return nil
   end
