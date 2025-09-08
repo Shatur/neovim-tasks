@@ -42,6 +42,7 @@ local Bazel = {
     'global_bazel_args',
     'bazel_compile_commands_tool',
     'bazel_compile_commands_tool_args',
+    'bazel_compile_commands_tool_bazel_prefix',
   },
   condition = function() return Path:new('WORKSPACE'):exists() or Path:new('MODULE.bazel'):exists() end,
   tasks = {},
@@ -153,10 +154,19 @@ end
 
 function Bazel.tasks.external_refresh_compile_commands(module_config)
   local refreshTool = module_config.bazel_compile_commands_tool or 'bazel-compile-commands'
-  local refreshArgs = module_config.bazel_compile_commands_tool_args or '--verbose'
+  local refreshArgs = module_config.bazel_compile_commands_tool_args or '--resolve --verbose %target%'
+  local bazelPrefix = module_config.bazel_compile_commands_tool_bazel_prefix or '--bazelopt='
+  local target = module_config.target or '//...'
+  refreshArgs = refreshArgs:gsub('%%target%%', target)
+  local bazelOpts = vim.list_extend(vim.list_extend({ build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args))
+  local finalOpts = {}
+  for _, arg in ipairs(bazelOpts) do
+    table.insert(finalOpts, bazelPrefix .. arg)
+  end
+  finalOpts = vim.list_extend(finalOpts, utils.split_args(refreshArgs))
   return {
     cmd = refreshTool,
-    args = utils.split_args(refreshArgs),
+    args = finalOpts,
     after_success = restartClangd,
   }
 end
