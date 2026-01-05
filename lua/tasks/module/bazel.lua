@@ -3,7 +3,7 @@ local utils = require('tasks.utils')
 local bazel_utils = require('tasks.bazel_utils.bazel_utils')
 
 local function query_bazel_targets()
-  local allTargets = vim.fn.systemlist('bazel query //...:all')
+  local allTargets = vim.fn.systemlist('bazel query \'kind(".*_binary|.*_test|.*_library", //...)\'')
   local targets = {}
   for _, candidate in ipairs(allTargets) do
     local bazelTarget = string.gmatch(candidate, '//.+')()
