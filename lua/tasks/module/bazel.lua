@@ -3,6 +3,23 @@ local utils = require('tasks.utils')
 local bazel_utils = require('tasks.bazel_utils.bazel_utils')
 
 local function query_bazel_targets()
+  local bazeltargets_file = Path:new('.bazeltargets')
+
+  -- Check if .bazeltargets file exists
+  if bazeltargets_file:exists() then
+    local targets = {}
+    local lines = bazeltargets_file:readlines()
+    for _, line in ipairs(lines) do
+      -- Trim whitespace and skip empty lines
+      local trimmed = line:match('^%s*(.-)%s*$')
+      if trimmed ~= '' then
+        table.insert(targets, trimmed)
+      end
+    end
+    return targets
+  end
+
+  -- Fall back to bazel query if .bazeltargets doesn't exist
   local allTargets = vim.fn.systemlist('bazel query \'kind(".*_binary|.*_test|.*_library", //...)\'')
   local targets = {}
   for _, candidate in ipairs(allTargets) do

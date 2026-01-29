@@ -388,6 +388,7 @@ lualine.setup({
 1. Open a Bazel project.
 2. Optionally set compilation mode with `:Task set_module_param bazel build_type`.
 3. Optionally set bazel target with `:Task set_module_param bazel target`.
+    - if this command takes a long time because of a large number of targets, you can create a file named `.bazeltargets` in the project root that contains a list of frequently used targets (one target per line). These targets will be used for selection instead of querying bazel for all available targets.
 4. Optionally set target arguments using `:Task set_task_param bazel run args`.
 5. Optionally set other bazel arguments using `:Task set_module_param bazel bazel_args`.
    - For example, you can set `--copt="-g" --strip=never --spawn_strategy=local --disk_cache=false` to enable debugging on MacOS, regardless of the compilation mode.
