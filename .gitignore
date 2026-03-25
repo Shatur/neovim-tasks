@@ -1,1 +1,7 @@
+# Neovim
+.emmyrc.json
 Session.vim
+
+# Nix
+.envrc
+.direnv/
