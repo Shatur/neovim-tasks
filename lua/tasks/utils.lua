@@ -93,4 +93,17 @@ function utils.get_module(module_type)
   return module, module_type
 end
 
+--- Find the index of a dap config
+--- @param name string name of the config
+--- @param configs table language configs list
+--- @return number: the index of the dap config
+function utils.get_dap_index(name, configs)
+  for idx, conf in ipairs(configs) do
+    if conf.name == name then
+      return idx
+    end
+  end
+  return -1
+end
+
 return utils

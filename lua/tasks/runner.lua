@@ -115,10 +115,11 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
     env = vim.tbl_extend('force', env, vim.tbl_get(module_config, 'env', task_name) or {})
   end
 
-  if command.dap_name then
+  if command.dap then
     vim.schedule(function()
       local dap = require('dap')
-      local dap_config = dap.configurations[command.dap_name] -- Try to get an existing configuration
+      local dap_config = dap.configurations[command.dap.config] -- Try to get an existing configuration
+      dap_config = dap_config[utils.get_dap_index(command.dap.name, dap_config)]
       local dap_config_args = {
         name = command.cmd,
         request = 'launch',
@@ -129,7 +130,7 @@ function runner.chain_commands(task_name, commands, module_config, addition_args
       if command.dap_config then
         dap_config_args = vim.tbl_extend('force', dap_config_args, command.dap_config)
       end
-      dap.run(vim.tbl_extend('force', dap_config and dap_config or { type = command.dap_name }, dap_config_args))
+      dap.run(vim.tbl_extend('force', dap_config and dap_config or { type = command.dap.name }, dap_config_args))
       if config.dap_open_command then
         vim.api.nvim_command('cclose')
         config.dap_open_command()
