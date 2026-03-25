@@ -7,7 +7,10 @@ local config = {
         cmd = 'cmake', -- CMake executable to use, can be changed using `:Task set_module_param cmake cmd`.
         build_type = 'Debug', -- Build type, can be changed using `:Task set_module_param cmake build_type`.
         build_kit = 'default', -- default build kit, can be changed using `:Task set_module_param cmake build_kit`.
-        dap_name = 'codelldb', -- DAP configuration name from `require('dap').configurations`. If there is no such configuration, a new one with this name as `type` will be created.
+        dap = {
+          config = 'cpp', -- DAP language configurations from `require('dap').configurations`. If there are no such configurations, a new one will be created.
+          name = 'codelldb', -- DAP configuration name from `require('dap').configurations[config]`. If there is no such configuration a new one with this name as `type` will be created.
+        },
         build_dir = tostring(Path:new('{cwd}', 'build', '{build_kit}', '{build_type}')), -- Build directory. The expressions `{cwd}`, `{build_kit}` and `{build_type}` will be expanded with the corresponding text values. Could be a function that return the path to the build directory.
         cmake_kits_file = nil, -- set path to JSON file containing cmake kits
         cmake_build_types_file = nil, -- set path to JSON file containing cmake kits
@@ -25,12 +28,18 @@ local config = {
       },
       zig = {
         cmd = 'zig', -- zig command which will be invoked
-        dap_name = 'codelldb', -- DAP configuration name from `require('dap').configurations`. If there is no such configuration, a new one with this name as `type` will be created.
+        dap = {
+          config = 'zig', -- DAP language configurations from `require('dap').configurations`. If there are no such configurations, a new one will be created.
+          name = 'codelldb', -- DAP configuration name from `require('dap').configurations[config]`. If there is no such configuration a new one with this name as `type` will be created.
+        },
         build_type = 'Debug', -- build type, can be changed using `:Task set_module_param zig build_type`
         build_step = 'install', -- build step, cah be changed using `:Task set_module_param zig build_step`
       },
       cargo = {
-        dap_name = 'codelldb', -- DAP configuration name from `require('dap').configurations`. If there is no such configuration, a new one with this name as `type` will be created.
+        dap = {
+          config = 'rust', -- DAP language configurations from `require('dap').configurations`. If there are no such configurations, a new one will be created.
+          name = 'codelldb', -- DAP configuration name from `require('dap').configurations[config]`. If there is no such configuration a new one with this name as `type` will be created.
+        },
       },
       npm = {
         cmd = 'npm', -- npm command which will be invoked. If using yarn or pnpm, change here.
