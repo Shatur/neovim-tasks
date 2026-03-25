@@ -133,7 +133,7 @@ local function debug_test(module_config, previous_job)
 
   return {
     cmd = package.executable,
-    dap_name = module_config.dap_name,
+    dap = module_config.dap,
     errorformat = errorformat,
   }
 end
@@ -161,13 +161,13 @@ local function debug(module_config, previous_job)
 
   return {
     cmd = package.executable,
-    dap_name = module_config.dap_name,
+    dap = module_config.dap,
     errorformat = errorformat,
   }
 end
 
 cargo.params = {
-  'dap_name',
+  'dap',
   'global_cargo_args',
 }
 cargo.condition = function() return Path:new('Cargo.toml'):exists() end

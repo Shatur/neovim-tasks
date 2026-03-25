@@ -393,7 +393,7 @@ local function debug(module_config, _)
     return nil
   end
 
-  command.dap_name = module_config.dap_name
+  command.dap = module_config.dap
   return command
 end
 
@@ -411,9 +411,11 @@ local function setupCMakeDAP(configure_command)
     },
   }
   dap.configurations.cmake = {
-    type = 'cmake',
-    request = 'attach',
-    name = 'CMake Debugger',
+    {
+      type = 'cmake',
+      request = 'attach',
+      name = 'CMake Debugger',
+    },
   }
 end
 
@@ -425,7 +427,10 @@ local function configureDebug(module_config, _)
 
   setupCMakeDAP(command)
 
-  command.dap_name = 'cmake'
+  command.dap = {
+    config = 'cmake',
+    name = 'cmake',
+  }
   return command
 end
 

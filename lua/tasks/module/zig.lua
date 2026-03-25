@@ -67,7 +67,7 @@ local function debug_file(module_config, _)
   local srcFilename = vim.fn.fnamemodify(currentSource, ':t:r')
   return {
     cmd = '.zig-cache/run-' .. srcFilename,
-    dap_name = module_config.dap_name,
+    dap = module_config.dap,
   }
 end
 
@@ -93,7 +93,7 @@ local function debug_test_file(module_config, _)
   local srcFilename = vim.fn.fnamemodify(currentSource, ':t:r')
   return {
     cmd = '.zig-cache/test-' .. srcFilename,
-    dap_name = module_config.dap_name,
+    dap = module_config.dap,
   }
 end
 
@@ -144,7 +144,7 @@ end
 return {
   params = {
     'cmd',
-    'dap_name',
+    'dap',
     build_type = { 'Debug', 'ReleaseSafe', 'ReleaseFast', 'ReleaseSmall' },
     build_step = get_build_steps,
   },

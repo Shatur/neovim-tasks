@@ -51,7 +51,7 @@ end
 local Bazel = {
   params = {
     'cmd',
-    'dap_name',
+    'dap',
     build_type = { 'fastbuild', 'dbg', 'opt' },
     target = query_bazel_targets,
     'compile_commands_refresh_target',
@@ -169,7 +169,7 @@ local function debug(module_config, _)
     return nil
   end
 
-  command.dap_name = module_config.dap_name
+  command.dap = module_config.dap
   -- note: https://github.com/vadimcn/codelldb/discussions/517#discussioncomment-1331286
   -- Bazel replaces the actual source location with "/proc/self/cwd" in order to achieve repeatable builds.
   -- You'll need to add "sourceMap": { ".": "${workspaceFolder}" } to your launch configuration.
