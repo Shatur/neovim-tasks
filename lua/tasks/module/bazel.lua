@@ -20,7 +20,7 @@ local function query_bazel_targets()
   end
 
   -- Fall back to bazel query if .bazeltargets doesn't exist
-  local allTargets = vim.fn.systemlist('bazel query \'kind(".*_binary|.*_test|.*_library", //...)\'')
+  local allTargets = vim.fn.systemlist('bazel query \'kind(".*_binary|.*_test|.*_library|.*_application", //...)\'')
   local targets = {}
   for _, candidate in ipairs(allTargets) do
     local bazelTarget = string.gmatch(candidate, '//.+')()
