@@ -28,6 +28,44 @@ local function read_to_quickfix(errorformat)
     local result_line = nil
     local found_newline = nil
 
+    -- HACK: Helper to insert lines, splitting them intelligently at whitespace
+    -- if they exceed 900 bytes to bypass Neovim's 1023-byte quickfix limit.
+    local function insert_line(val)
+      if type(val) ~= 'string' then
+        table.insert(lines, val)
+        return
+      end
+
+      local max_len = 900
+
+      while #val > max_len do
+        local split_idx = max_len
+
+        -- Scan backwards to find the nearest whitespace
+        while split_idx > 0 and val:sub(split_idx, split_idx):match("%S") do
+          split_idx = split_idx - 1
+        end
+
+        if split_idx == 0 then
+          -- Fallback: No whitespace found in the first 900 bytes.
+          -- Hard split to prevent Neovim from crashing.
+          split_idx = max_len
+          table.insert(lines, val:sub(1, split_idx))
+          val = val:sub(split_idx + 1)
+        else
+          -- Split precisely at the whitespace boundary.
+          -- Insert everything up to the space, then update `val` to skip the space itself.
+          table.insert(lines, val:sub(1, split_idx - 1))
+          val = val:sub(split_idx + 1)
+        end
+      end
+
+      -- Insert whatever is left over
+      if #val > 0 then
+        table.insert(lines, val)
+      end
+    end
+
     while true do
       if data then
         data = data:gsub('\r', '')
@@ -60,7 +98,7 @@ local function read_to_quickfix(errorformat)
               return vim.api.nvim_err_writeln('Broken data thing due to: ' .. tostring(result_line) .. ' ' .. tostring(data))
             end
 
-            table.insert(lines, err and err or result_line)
+            insert_line(err and err or result_line)
 
             result_index = result_index + 1
             result_line = nil
