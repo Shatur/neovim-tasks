@@ -42,7 +42,7 @@ local function read_to_quickfix(errorformat)
         local split_idx = max_len
 
         -- Scan backwards to find the nearest whitespace
-        while split_idx > 0 and val:sub(split_idx, split_idx):match("%S") do
+        while split_idx > 0 and val:sub(split_idx, split_idx):match('%S') do
           split_idx = split_idx - 1
         end
 
