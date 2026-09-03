@@ -78,6 +78,7 @@ require('tasks').setup({
         '--pch-storage=memory',
         '--cross-file-rename',
         '-j=4',
+        '--query-driver=**',
       }, -- command line for invoking clangd - this array will be extended with --compile-commands-dir and --query-driver after each cmake configure with parameters inferred from build_kit, build_type and build_dir
     },
     zig = {
