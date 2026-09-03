@@ -249,14 +249,7 @@ local function reconfigureClangd()
       offsetEncoding = { 'utf-8' },
     },
   })
-  -- vim.lsp.stop_client(vim.lsp.get_clients({ name = 'clangd' }))
-  local clients = vim.lsp.get_clients({ name = 'clangd' })
-  for _, client in ipairs(clients) do
-    if not client:is_stopped() then
-      client:stop()
-    end
-  end
-  vim.defer_fn(function() vim.api.nvim_command('edit') end, 500)
+  vim.api.nvim_command('lsp restart clangd')
 end
 
 -- Returns only build presets that match currently active configure preset

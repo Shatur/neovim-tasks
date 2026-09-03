@@ -199,8 +199,7 @@ function Bazel.tasks.test(module_config, _)
 end
 
 local function restartClangd()
-  vim.lsp.stop_client(vim.lsp.get_clients({ name = 'clangd' }))
-  vim.defer_fn(function() vim.api.nvim_command('edit') end, 500)
+  vim.api.nvim_command('lsp restart clangd')
 end
 
 function Bazel.tasks.refresh_compile_commands(module_config)
