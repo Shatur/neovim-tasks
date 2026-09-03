@@ -198,9 +198,7 @@ function Bazel.tasks.test(module_config, _)
   }
 end
 
-local function restartClangd()
-  vim.api.nvim_command('lsp restart clangd')
-end
+local function restartClangd() vim.api.nvim_command('lsp restart clangd') end
 
 function Bazel.tasks.refresh_compile_commands(module_config)
   local refreshTarget = module_config.compile_commands_refresh_target or '@hedron_compile_commands//:refresh_all'
