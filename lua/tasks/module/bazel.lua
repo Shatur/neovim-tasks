@@ -140,7 +140,7 @@ function Bazel.tasks.run(module_config, _)
   local target = module_config.target
   return {
     cmd = bazel_command(module_config),
-    args = vim.list_extend(vim.list_extend(vim.list_extend({ 'run', target, build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)), { '--' }),
+    args = vim.list_extend(vim.list_extend(vim.list_extend({ 'run', target, build_type(module_config) }, global_bazel_args(module_config)), utils.split_args(module_config.bazel_args)), { '--test_sharding_strategy=disabled', '--' }),
   }
 end
 
